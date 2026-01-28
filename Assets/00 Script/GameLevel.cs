@@ -15,11 +15,13 @@ public class GameLevel : MonoBehaviour
 
     private void OnEnable()
     {
+        if (GameManager.Instance == null) return;
         GameManager.Instance.OnAllFoodChanged += OnEatItem;
     }
 
     private void OnDisable()
     {
+        if (GameManager.Instance == null) return;
         GameManager.Instance.OnAllFoodChanged -= OnEatItem;
     }
 
@@ -48,7 +50,7 @@ public class GameLevel : MonoBehaviour
 
     }
 
-    public void OnEatItem()
+    private void OnEatItem()
     {
         m_currentItem += 3;
 
