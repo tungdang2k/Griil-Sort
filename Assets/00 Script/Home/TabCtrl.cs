@@ -1,3 +1,4 @@
+﻿using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,23 +6,30 @@ public class TabCtrl : MonoBehaviour
 {
     [SerializeField] private Image[] m_tabImage;
     [SerializeField] private GameObject[] m_pages;
+
+    float m_width;
     void Start()
     {
         OnActiveTab(1);
     }
-
     public void OnActiveTab(int index)
     {
         for (int i = 0; i < m_pages.Length; i++)
         {
-            m_pages[i].SetActive(i == index);
-            m_tabImage[i].color =   Color.gray;
-        }
+            bool isActive = i == index;
 
-        m_tabImage[index].color = Color.white;
-        m_pages[index].SetActive(true);
+            m_pages[i].SetActive(isActive);
+
+            // COLOR
+            m_tabImage[i].DOKill();
+            m_tabImage[i].DOColor(isActive ? Color.white : Color.gray, 0.15f);
+
+            // SCALE
+            RectTransform rect = m_tabImage[i].rectTransform;
+            rect.DOKill();
+            rect.DOScale(isActive ? 1.2f : 1f, 0.15f)
+                .SetEase(Ease.OutBack);
+        }
     }
 
-
-
-}
+    }

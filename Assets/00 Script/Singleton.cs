@@ -1,34 +1,37 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {
-    private static T _instant = null;
+    private static T _instance;
+
     public static T Instance
     {
         get
         {
-            if (_instant == null)
+            if (_instance == null)
             {
-                if (FindFirstObjectByType<T>() != null)
-                    _instant = FindFirstObjectByType<T>();
-                else
-                    new GameObject().AddComponent<T>().name = "Singleton_" + typeof(T).ToString();
-            }
 
-            return _instant;
+                _instance = FindFirstObjectByType<T>(FindObjectsInactive.Include);
+
+                if (_instance == null)
+                {
+                    Debug.LogError($"Không tìm thấy {typeof(T)} trong Scene!");
+                }
+            }
+            return _instance;
         }
     }
 
-    void Awake()
+    protected virtual void Awake()
     {
-        if (_instant != null && _instant.gameObject.GetInstanceID() != this.gameObject.GetInstanceID())
+        if (_instance != null && _instance != this)
         {
-            Debug.LogError("Singleton already exist " + _instant.gameObject.name);
-            Destroy(this.gameObject);
+            Destroy(gameObject);
+            return;
         }
-        else
-            _instant = this.GetComponent<T>();
+
+        _instance = this as T;
+        transform.SetParent(null);
+        DontDestroyOnLoad(gameObject);
     }
 }

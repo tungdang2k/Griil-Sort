@@ -31,9 +31,9 @@ public class GameManager : Singleton<GameManager>
     private float m_avgTray; // gia tri trung binh thuc an cho 1 dia
     private List<Sprite> m_totalSpriteFood = new List<Sprite>();
 
-      void Awake()
+     protected override void Awake()
     {
-        
+        base.Awake();
         LoadLevel(m_currentLevel);
         m_listGrill = Utils.GetListInChild<GrillStation>(m_gridGrill);
         Sprite[] loadedSprites = Resources.LoadAll<Sprite>("Items");
