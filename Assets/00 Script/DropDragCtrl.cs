@@ -16,7 +16,7 @@ public class DropDragCtrl : MonoBehaviour
     {
         m_imgFoodDrag.gameObject.SetActive(false);
     }
-
+   
     private void Update()
     {
 
@@ -25,8 +25,8 @@ public class DropDragCtrl : MonoBehaviour
 
         if (m_countTime >= m_timeCheckSuggest)
         {
-            m_countTime = 0f;
-            GameManager.Instance?.OnCheckAndShake();
+            m_countTime = 0f;   
+                GameManager.Instance?.OnCheckAndShake();
         }
 
 
@@ -57,6 +57,7 @@ public class DropDragCtrl : MonoBehaviour
                 {
                     if (m_currentfoodSlot != null) // di chuyen item vua slect toi vi tri nay
                     {
+                        m_imgFoodDrag.transform.DOKill();
                         m_imgFoodDrag.transform.DOMove(tapSlot.transform.position, 0.4f).OnComplete(() => {
                             tapSlot.OnSetSlot(m_currentfoodSlot.GetSpriteFood());
                             tapSlot.OnActiveFood(true);
@@ -80,6 +81,7 @@ public class DropDragCtrl : MonoBehaviour
         }
         if (m_hasDrag)
         {
+            if (!m_imgFoodDrag || !m_imgFoodDrag.canvas) return;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
              m_imgFoodDrag.canvas.transform as RectTransform,
                 Input.mousePosition,
@@ -150,7 +152,6 @@ public class DropDragCtrl : MonoBehaviour
                         m_cacheFood = null;
                         m_currentfoodSlot = null;
                     });
-
                     m_imgFoodDrag.transform.DOScale(Vector3.one, 0.22f);
                 }
                 else // xu ly tro ve vi tri ban dau
@@ -160,7 +161,6 @@ public class DropDragCtrl : MonoBehaviour
                         m_imgFoodDrag.gameObject.SetActive(false);
                         m_currentfoodSlot.OnActiveFood(true);
                     });
-
                     m_imgFoodDrag.transform.DOScale(Vector3.one, 0.3f);
                 }
             }

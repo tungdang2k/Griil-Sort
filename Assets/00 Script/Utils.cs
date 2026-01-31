@@ -9,6 +9,7 @@ public static class Utils
     public static List<T> GetListInChild<T>(Transform parent) where T : Component
     {
         List<T> list = new List<T>();
+        if (!parent) return list;
         for (int i = 0; i < parent.childCount; i++)
         {
             var item = parent.GetChild(i).GetComponent<T>();

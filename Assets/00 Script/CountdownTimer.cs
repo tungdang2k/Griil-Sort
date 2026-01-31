@@ -1,54 +1,72 @@
-﻿using TMPro;
+﻿using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class CountDowntimer : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI txtTime;
-    private float totalTime;
-    private float currentTime;
-    private bool isRunning;
+    [SerializeField] private TextMeshProUGUI m_txtTime;
+    private float m_totalTime;
+    private float m_currentTime;
+    private bool m_isRunning;
 
-    private void Start()
+    //private void Start()
+    //{
+    //    Debug.Log(GameManager.Instance.LevelSeconds);
+    //}
+    private IEnumerator Start()
     {
-        totalTime = GameManager.Instance.CurrentLevelData.levelSeconds;
-        StartTimer(totalTime);
+        yield return new WaitUntil(() =>
+            GameManager.Instance != null &&
+            GameManager.Instance.LevelSeconds > 0
+        );
+
+        m_totalTime = GameManager.Instance.LevelSeconds;
+        StartTimer(m_totalTime);
     }
 
     void Update()
     {
-        if (!isRunning) return;
+        if (!m_isRunning) return;
 
-        currentTime -= Time.deltaTime;
+        m_currentTime -= Time.deltaTime;
 
-        if (currentTime <= 0)
+        if (m_currentTime <= 0)
         {
-            currentTime = 0;
-            isRunning = false;
+            m_currentTime = 0;
+            m_isRunning = false;
             OnTimeUp();
         }
 
         UpdateUI();
-    }
 
-    public void StartTimer(float time)
+    }
+   
+    private void StartTimer(float time)
     {
-        totalTime = time;
-        currentTime = time;
-        isRunning = true;
+        m_totalTime = time;
+        m_currentTime = time;
+        m_isRunning = true;
         UpdateUI();
     }
 
-    void UpdateUI()
+    private void UpdateUI()
     {
-        int minutes = Mathf.FloorToInt(currentTime / 60f);
-        int seconds = Mathf.FloorToInt(currentTime % 60f);
+        int minutes = Mathf.FloorToInt(m_currentTime / 60f);
+        int seconds = Mathf.FloorToInt(m_currentTime % 60f);
 
-        txtTime.text = $"{minutes:00}:{seconds:00}";
+        m_txtTime.text = $"{minutes:00}:{seconds:00}";
     }
 
-    void OnTimeUp()
+    private void OnTimeUp()
     {
         Debug.Log("⏰ Time Up!");
-        // TODO: thua game / hết lượt
+
     }
+
+    public void AddTime(float extraTime)
+    {
+        m_currentTime += extraTime;
+        //FloatingText.Show($"+{seconds}s", Color.green);
+    }
+
 }

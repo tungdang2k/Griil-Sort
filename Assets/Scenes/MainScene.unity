@@ -3915,7 +3915,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ba91226e057b1c48bdf87ec1854e39c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  txtTime: {fileID: 1249532387}
+  m_txtTime: {fileID: 1249532387}
 --- !u!1 &198741931
 GameObject:
   m_ObjectHideFlags: 0
@@ -3998,8 +3998,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1714916357}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+      - m_Target: {fileID: 729810229}
+        m_TargetAssemblyTypeName: Powerups, Assembly-CSharp
         m_MethodName: OnAddMoreGrill
         m_Mode: 1
         m_Arguments:
@@ -12806,8 +12806,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1714916357}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+      - m_Target: {fileID: 729810229}
+        m_TargetAssemblyTypeName: Powerups, Assembly-CSharp
         m_MethodName: OnMagnet
         m_Mode: 1
         m_Arguments:
@@ -15321,6 +15321,71 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 729673471}
   m_CullTransparentMesh: 1
+--- !u!1 &729810226
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 729810228}
+  - component: {fileID: 729810227}
+  - component: {fileID: 729810229}
+  m_Layer: 0
+  m_Name: InputController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &729810227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 729810226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 968d74d54c1bb5f468583e9f17d56bb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_imgFoodDrag: {fileID: 160672345}
+  m_timeCheckSuggest: 3
+--- !u!4 &729810228
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 729810226}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &729810229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 729810226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fc5e7bf0f9d71344b19373032cc9a95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_timer: {fileID: 197045757}
+  m_imgDummyList:
+  - {fileID: 662719130}
+  - {fileID: 678633674}
+  - {fileID: 1809955536}
+  m_magnetTarget: {fileID: 9401212}
 --- !u!1 &731233531
 GameObject:
   m_ObjectHideFlags: 0
@@ -30855,7 +30920,7 @@ GameObject:
   - component: {fileID: 1603372993}
   m_Layer: 5
   m_Name: Grill
-  m_TagString: Untagged
+  m_TagString: GridGrill
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32095,8 +32160,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1714916357}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+      - m_Target: {fileID: 729810229}
+        m_TargetAssemblyTypeName: Powerups, Assembly-CSharp
         m_MethodName: OnShuffle
         m_Mode: 1
         m_Arguments:
@@ -32812,7 +32877,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1714916358}
   - component: {fileID: 1714916357}
-  - component: {fileID: 1714916359}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -32833,12 +32897,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_levelLoader: {fileID: 247071775}
-  m_gridGrill: {fileID: 1603372991}
-  m_magnetTarget: {fileID: 9401212}
-  m_imgDummyList:
-  - {fileID: 662719130}
-  - {fileID: 678633674}
-  - {fileID: 1809955536}
   m_totalGrill: 9
   m_allFood: 51
   m_toltalFood: 10
@@ -32858,20 +32916,6 @@ Transform:
   - {fileID: 247071776}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1714916359
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1714916356}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 968d74d54c1bb5f468583e9f17d56bb5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_imgFoodDrag: {fileID: 160672345}
-  m_timeCheckSuggest: 3
 --- !u!1 &1715936814
 GameObject:
   m_ObjectHideFlags: 0
@@ -35914,7 +35958,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1887165318}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 729810229}
+        m_TargetAssemblyTypeName: Powerups, Assembly-CSharp
+        m_MethodName: OnAddTime
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1887165318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40576,6 +40632,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1289664993}
     m_Modifications:
+    - target: {fileID: 1146017837844001855, guid: 637eb3ba6270b2c4383d4321a1b8b7f7, type: 3}
+      propertyPath: m_fontSize
+      value: 36.05
+      objectReference: {fileID: 0}
     - target: {fileID: 1561756242226048608, guid: 637eb3ba6270b2c4383d4321a1b8b7f7, type: 3}
       propertyPath: m_Name
       value: Gold
@@ -40673,5 +40733,6 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 2089438723}
   - {fileID: 1704733803}
-  - {fileID: 1714916358}
   - {fileID: 9401212}
+  - {fileID: 729810228}
+  - {fileID: 1714916358}
