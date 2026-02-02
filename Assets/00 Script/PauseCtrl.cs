@@ -2,17 +2,14 @@ using UnityEngine;
 
 public class PauseCtrl : MonoBehaviour
 {
-    [SerializeField] private GameObject pausePanel;
-    void Awake()
-    {
-        pausePanel.gameObject.SetActive(false);
-        //OnClickPauseBtn();
-    }
+    [SerializeField] private GameObject m_pausePanel;
+    
 
     public void OnClickPauseBtn()
     {
-        bool isPaused = !pausePanel.activeSelf;
-        pausePanel.SetActive(isPaused);
+        AudioManager.Instance.PlaySFX(SFXType.Click);
+        bool isPaused = !m_pausePanel.activeSelf;
+        m_pausePanel.SetActive(isPaused);
         Time.timeScale = isPaused ? 0f : 1f;
     }
 

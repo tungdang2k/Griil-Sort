@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using DG.Tweening;
-
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 
 public class GameManager : Singleton<GameManager>
@@ -64,7 +60,7 @@ public class GameManager : Singleton<GameManager>
 
     }
    
-    public void StartLevl()
+    public void StartLevel()
     {
 
         m_listGrill?.Clear();   
@@ -84,7 +80,7 @@ public class GameManager : Singleton<GameManager>
         m_allFood = CurrentLevelData.spawnWareData.totalWare;
         m_toltalFood = CurrentLevelData.spawnWareData.totalWarePattern;
         m_totalGrill = CurrentLevelData.boardData.listTrayData.Count;
-        Debug.Log($"[GameManager] Level {level} loaded. AllFood: {m_allFood} | TotalFood: {m_toltalFood}");
+        //Debug.Log($"[GameManager] Level {level} loaded. AllFood: {m_allFood} | TotalFood: {m_toltalFood}");
     }
     private void CompleteLevel()
     {
@@ -96,7 +92,7 @@ public class GameManager : Singleton<GameManager>
     }
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        StartLevl();
+        StartLevel();
        
     }
     public int GetTotalRealFoodInScene()
@@ -134,7 +130,6 @@ public class GameManager : Singleton<GameManager>
     {
         if (m_allFood / 3 < m_toltalFood)
         {
-            Debug.LogError("Not enough food to create triplets");
             return;
         }
         List<Sprite> takeFood = m_totalSpriteFood.OrderBy(x => UnityEngine.Random.value).Take(m_toltalFood).ToList(); // lay ngau nhien so luong thuc an can thiet
@@ -226,8 +221,9 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log($"[GameManager] Item Removed! AllFood: {m_allFood} | TotalFood: {m_toltalFood}");
         if (m_allFood <= 0)
         {
-            SceneManager.LoadScene("HomeScene");
+            LoadingSceneManager.Instance.SwichToScene(CONSTANTS.HOMESCENE);
             this.CompleteLevel();
+            AudioManager.Instance.PlaySFX(SFXType.Win);
         }
     }
 

@@ -29,15 +29,22 @@ public class DropDragCtrl : MonoBehaviour
                 GameManager.Instance?.OnCheckAndShake();
         }
 
-
-
+        OnBtnDown();
+        OnHasDrag();
+        OnBtnUp();
+    }
+   
+    private void OnBtnDown()
+    {
         if (Input.GetMouseButtonDown(0)) // check khi click chuot
         {
+
             FoodSlot tapSlot = Utils.GetRayCastUI<FoodSlot>(Input.mousePosition); // check o vi tri click chuot xem co Ui gan class FoodSlot
             if (tapSlot != null)
             {
                 if (tapSlot.HasFood())
                 {
+                    AudioManager.Instance.PlaySFX(SFXType.Click);
                     m_hasDrag = true;
                     m_currentfoodSlot?.OnActiveFood(true);
                     m_cacheFood = m_currentfoodSlot = tapSlot;
@@ -47,7 +54,7 @@ public class DropDragCtrl : MonoBehaviour
                     m_imgFoodDrag.SetNativeSize();
                     m_imgFoodDrag.transform.position = m_currentfoodSlot.transform.position; // gan vi tri               
 
-                    
+
                     m_imgFoodDrag.transform.position = Input.mousePosition;
                     m_offset = Vector2.zero;
                     m_currentfoodSlot.OnActiveFood(false);
@@ -77,8 +84,12 @@ public class DropDragCtrl : MonoBehaviour
                 m_imgFoodDrag.gameObject.SetActive(false);
             }
 
-            
+
         }
+    }
+
+    private void OnHasDrag()
+    {
         if (m_hasDrag)
         {
             if (!m_imgFoodDrag || !m_imgFoodDrag.canvas) return;
@@ -131,9 +142,13 @@ public class DropDragCtrl : MonoBehaviour
                 }
             }
         }
+    }
 
+    private void OnBtnUp()
+    {
         if (Input.GetMouseButtonUp(0) && m_hasDrag)
         {
+            AudioManager.Instance.PlaySFX(SFXType.Smoke);
             if (Time.time - _timeAtClick < 0.15f) // Controll by click
             {
 
@@ -167,10 +182,7 @@ public class DropDragCtrl : MonoBehaviour
             m_hasDrag = false;
 
         }
-        
-
     }
-   
     private void OnClearCacheFood()
     {
         if (m_cacheFood != null && m_cacheFood.GetInstanceID() != m_currentfoodSlot.GetInstanceID())

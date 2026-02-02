@@ -10,10 +10,18 @@ public class TabCtrl : MonoBehaviour
     float m_width;
     void Start()
     {
-        OnActiveTab(1);
+        SetTab(1);
     }
+
     public void OnActiveTab(int index)
     {
+        AudioManager.Instance.PlaySFX(SFXType.Click);
+        SetTab(index);
+    }
+
+    public void SetTab(int index)
+    {
+       
         for (int i = 0; i < m_pages.Length; i++)
         {
             bool isActive = i == index;
@@ -30,6 +38,7 @@ public class TabCtrl : MonoBehaviour
             rect.DOScale(isActive ? 1.2f : 1f, 0.15f)
                 .SetEase(Ease.OutBack);
         }
-    }
 
+        
     }
+}

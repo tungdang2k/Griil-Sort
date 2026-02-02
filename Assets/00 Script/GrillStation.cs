@@ -23,13 +23,11 @@ public class GrillStation : MonoBehaviour
         // ===== GUARD =====
         if (totalTray <= 0)
         {
-            Debug.LogWarning("OnInitGrill: totalTray <= 0");
             return;
         }
 
         if (listFood == null || listFood.Count == 0)
         {
-            Debug.LogWarning("OnInitGrill: No food to init");
             return;
         }
 
@@ -47,7 +45,6 @@ public class GrillStation : MonoBehaviour
             FoodSlot slot = RandomSlot();
             if (slot == null)
             {
-                Debug.LogWarning("No empty slot available");
                 break;
             }
             slot.OnSetSlot(food);
@@ -103,7 +100,6 @@ public class GrillStation : MonoBehaviour
     {
         if (m_totalSlot == null || m_totalSlot.Count == 0)
         {
-            Debug.LogError("RandomSlot: No slot available");
             return null;
         }
 
@@ -112,7 +108,6 @@ public class GrillStation : MonoBehaviour
 
         if (emptySlots.Count == 0)
         {
-            Debug.LogError("RandomSlot: All slots already have food");
             return null;
         }
 
@@ -141,7 +136,8 @@ public class GrillStation : MonoBehaviour
         {
             if(CanMerge())
             {
-               
+                AudioManager.Instance.PlaySFX(SFXType.Merge);
+
                 for (int i = 0; i < m_totalSlot.Count; i++)
                 {
                     m_totalSlot[i].OnActiveFood(false);

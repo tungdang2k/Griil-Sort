@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,6 +11,9 @@ public class Powerups : MonoBehaviour
     [SerializeField] private CountDowntimer m_timer;
     [SerializeField] private List<Image> m_imgDummyList = new List<Image>();
     [SerializeField] private  Transform m_magnetTarget;
+    [SerializeField] private TextMeshProUGUI m_txtAddTimePrefab;
+    [SerializeField] private Transform m_popupRoot;
+    [SerializeField] private float m_TimeBonus = 45;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -19,6 +23,7 @@ public class Powerups : MonoBehaviour
 
     public void OnMagnet()
     {
+        AudioManager.Instance.PlaySFX(SFXType.Merge);
         Dictionary<string, List<Image>> groups = new Dictionary<string, List<Image>>();
 
         foreach (var grill in GameManager.Instance.ListGrill)
@@ -146,7 +151,7 @@ public class Powerups : MonoBehaviour
 
     public void OnShuffle()
     {
-
+        AudioManager.Instance.PlaySFX(SFXType.Merge);
         StartCoroutine(IEShuffle());
 
     }
@@ -164,37 +169,62 @@ public class Powerups : MonoBehaviour
             }
         }
 
-        yield return new WaitForSeconds(0.3f);
+        if (result.Count <= 1)
+            yield break;
 
+        yield return new WaitForSeconds(0.1f);
+
+        float jumpTime = 0.25f;
+        float fallTime = 0.35f;
+
+        // 1️⃣ Jump lên đồng loạt
+        foreach (var img in result)
+        {
+            img.transform
+                .DOScale(1.15f, jumpTime)
+                .SetEase(Ease.OutQuad);
+        }
+
+        yield return new WaitForSeconds(jumpTime * 0.6f);
+
+        // 2️⃣ Shuffle sprite (instant)
         for (int i = 0; i < result.Count; i++)
         {
-            int n = UnityEngine.Random.Range(0, result.Count);
+            int n = Random.Range(i, result.Count);
+
             Sprite temp = result[i].sprite;
             result[i].sprite = result[n].sprite;
             result[n].sprite = temp;
+
             result[i].SetNativeSize();
             result[n].SetNativeSize();
         }
+
+        // 3️⃣ Rơi xuống đồng loạt
+        foreach (var img in result)
+        {
+            img.transform
+                .DOScale(1f, fallTime)
+                .SetEase(Ease.OutBack);
+        }
+
 
     }
 
     public void OnAddMoreGrill()
     {
+        AudioManager.Instance.PlaySFX(SFXType.Drag);
         foreach (var grill in GameManager.Instance.ListGrill)
         {
             if (!grill.gameObject.activeInHierarchy)
             {
                 grill.gameObject.SetActive(true);
-                //fxNewGrill.transform.SetParent(grill.transform);
-                //fxNewGrill.transform.localPosition = Vector3.zero;
 
-                //fxNewGrill.transform.localScale = Vector3.zero;
+                Transform t = grill.transform;
+                t.localScale = Vector3.zero;
 
-                //fxNewGrill.Play();
-
-                //fxNewGrill.transform
-                //    .DOScale(1f, 0.3f)
-                //    .SetEase(Ease.OutBack);
+                t.DOScale(1f, 0.35f)
+                 .SetEase(Ease.OutBack);
                 break;
             }
         }
@@ -202,7 +232,26 @@ public class Powerups : MonoBehaviour
 
     public void OnAddTime()
     {
-        m_timer.AddTime(15f);
+        m_timer.AddTime(m_TimeBonus);
+        ShowAddTimePopup(m_TimeBonus);
+        AudioManager.Instance.PlaySFX(SFXType.TimeBonus);
     }
+
+    private void ShowAddTimePopup(float seconds)
+    {
+        TextMeshProUGUI txt = Instantiate(m_txtAddTimePrefab, m_popupRoot);
+        txt.text = $"+{seconds}s";
+
+        RectTransform rt = txt.rectTransform;
+        rt.localScale = Vector3.zero;
+
+        rt.DOScale(1f, 0.2f).SetEase(Ease.OutBack)
+          .OnComplete(() =>
+          {
+              rt.DOScale(0f, 0.15f).SetDelay(0.4f)
+                .OnComplete(() => Destroy(txt.gameObject));
+          });
+    }
+
 
 }
