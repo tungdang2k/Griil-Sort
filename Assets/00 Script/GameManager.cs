@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 
 public class GameManager : Singleton<GameManager>
@@ -12,11 +13,14 @@ public class GameManager : Singleton<GameManager>
     public int AllFood => m_allFood;
     public int ToltalFood => m_toltalFood;
     public float LevelSeconds => m_levelSeconds;
-    public Action OnAllFoodChanged;
+    public event Action OnAllFoodChanged;
+    public event Action OnWin;
+    public event Action OnOutOfTime;
     public List<GrillStation> ListGrill => m_listGrill;
 
     [SerializeField] private LevelLoader m_levelLoader;
-
+    [SerializeField] private GameObject m_winGamePanel;
+    [SerializeField] private GameObject m_loseGamePanel;
 
     [SerializeField] private int m_totalGrill;
     [SerializeField] private int m_allFood;
@@ -28,6 +32,7 @@ public class GameManager : Singleton<GameManager>
     private List<GrillStation> m_listGrill = new List<GrillStation>();
     private float m_avgTray; // gia tri trung binh thuc an cho 1 dia
     private List<Sprite> m_totalSpriteFood = new List<Sprite>();
+    private bool m_isGameEnded = false;
     protected override void Awake()
     {
         base.Awake();
@@ -218,16 +223,36 @@ public class GameManager : Singleton<GameManager>
         {
             OnAllFoodChanged();
         }
-        //Debug.Log($"[GameManager] Item Removed! AllFood: {m_allFood} | TotalFood: {m_toltalFood}");
+        
         if (m_allFood <= 0)
         {
-            LoadingSceneManager.Instance.SwichToScene(CONSTANTS.HOMESCENE);
+            
             this.CompleteLevel();
             AudioManager.Instance.PlaySFX(SFXType.Win);
+            ShowWinPanel();
         }
     }
+    private void ShowWinPanel()
+    { 
+        if (m_isGameEnded) return;
+        m_isGameEnded = true;
+        OnWin?.Invoke();
+       
+    }
 
-    
+    public void Lose()
+    {
+        if (m_isGameEnded) return;
+        m_isGameEnded = true;
+        OnOutOfTime?.Invoke();
+
+    }
+
+    public void GoHome()
+    {
+        Time.timeScale = 1f;
+        LoadingSceneManager.Instance.SwichToScene(CONSTANTS.HOMESCENE);
+    }
 
     public void OnCheckAndShake()
     {
