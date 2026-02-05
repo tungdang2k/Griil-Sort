@@ -8,7 +8,6 @@ public class GameLevel : MonoBehaviour
     [SerializeField] private Slider m_levelPercent;
     [SerializeField] private TextMeshProUGUI m_percentText;
 
-    [SerializeField] private TextMeshProUGUI m_star;
 
     private int m_totalItem;
     private int m_currentItem;
@@ -28,7 +27,7 @@ public class GameLevel : MonoBehaviour
     private void Start()
     {
         m_totalItem = GameManager.Instance.AllFood;
-        m_star.text = "000";
+        
        
         UpdateLevel();
         UpdatelevelPercent();
@@ -46,7 +45,6 @@ public class GameLevel : MonoBehaviour
 
         m_percentText.text = Mathf.RoundToInt(value * 100) + "%";
 
-        m_star.text = m_currentItem.ToString("000"); 
 
     }
 

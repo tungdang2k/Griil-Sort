@@ -19,8 +19,6 @@ public class GameManager : Singleton<GameManager>
     public List<GrillStation> ListGrill => m_listGrill;
 
     [SerializeField] private LevelLoader m_levelLoader;
-    [SerializeField] private GameObject m_winGamePanel;
-    [SerializeField] private GameObject m_loseGamePanel;
 
     [SerializeField] private int m_totalGrill;
     [SerializeField] private int m_allFood;
@@ -218,6 +216,7 @@ public class GameManager : Singleton<GameManager>
 
     public void OnMinusFood()
     {
+        
         m_allFood -= 3;
         if(OnAllFoodChanged != null)
         {

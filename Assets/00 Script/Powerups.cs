@@ -69,7 +69,6 @@ public class Powerups : MonoBehaviour
 
 
         }
-
         foreach (var kvp in groups)
         {
             if (kvp.Value.Count >= 3)
@@ -78,6 +77,8 @@ public class Powerups : MonoBehaviour
                 break; // chỉ hút 1 group
             }
         }
+
+        
 
     }
 
@@ -151,7 +152,7 @@ public class Powerups : MonoBehaviour
 
     public void OnShuffle()
     {
-        AudioManager.Instance.PlaySFX(SFXType.Merge);
+        AudioManager.Instance.PlaySFX(SFXType.Shuffle);
         StartCoroutine(IEShuffle());
 
     }
