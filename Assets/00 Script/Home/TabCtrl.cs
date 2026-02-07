@@ -6,6 +6,8 @@ public class TabCtrl : MonoBehaviour
 {
     [SerializeField] private Image[] m_tabImage;
     [SerializeField] private GameObject[] m_pages;
+    [SerializeField] private Image[] m_backGroundPages;
+  
 
     float m_width;
     void Start()
@@ -27,7 +29,7 @@ public class TabCtrl : MonoBehaviour
             bool isActive = i == index;
 
             m_pages[i].SetActive(isActive);
-
+            m_backGroundPages[i].gameObject.SetActive(isActive);
             // COLOR
             m_tabImage[i].DOKill();
             m_tabImage[i].DOColor(isActive ? Color.white : Color.gray, 0.15f);

@@ -8,7 +8,15 @@ using UnityEngine.UIElements;
 
 public class GameManager : Singleton<GameManager>
 {
+    public enum Difficultys
+    {
+        Easy = 0,
+        Medium = 1,
+        Hard = 2
+    }
+
     public LevelData CurrentLevelData { get; private set; }
+    public Difficultys Difficulty { get; private set; }
     public int CurrentLevel => m_currentLevel;
     public int AllFood => m_allFood;
     public int ToltalFood => m_toltalFood;
@@ -72,7 +80,7 @@ public class GameManager : Singleton<GameManager>
         if (!m_gridGrill) return;
 
         m_listGrill = Utils.GetListInChild<GrillStation>(m_gridGrill);
-
+        m_isGameEnded = false;
         LoadLevel(m_currentLevel);
         OnInitLevel();
     }
@@ -83,6 +91,7 @@ public class GameManager : Singleton<GameManager>
         m_allFood = CurrentLevelData.spawnWareData.totalWare;
         m_toltalFood = CurrentLevelData.spawnWareData.totalWarePattern;
         m_totalGrill = CurrentLevelData.boardData.listTrayData.Count;
+        Difficulty = (Difficultys)CurrentLevelData.difficulty;
         //Debug.Log($"[GameManager] Level {level} loaded. AllFood: {m_allFood} | TotalFood: {m_toltalFood}");
     }
     private void CompleteLevel()
