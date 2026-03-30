@@ -14,15 +14,84 @@ public class Powerups : MonoBehaviour
     [SerializeField] private TextMeshProUGUI m_txtAddTimePrefab;
     [SerializeField] private Transform m_popupRoot;
     [SerializeField] private float m_TimeBonus = 45;
+    [SerializeField] private PowerupShopPopup m_storagePopup;
+    [SerializeField] private TextMeshProUGUI m_magnetCountTxt;
+    [SerializeField] private TextMeshProUGUI m_shuffleCountTxt;
+    [SerializeField] private TextMeshProUGUI m_timeCountTxt;
+    [SerializeField] private Image m_magnetPlusIcon;
+    [SerializeField] private Image m_shufflePlusIcon;
+    [SerializeField] private Image m_timePlusIcon;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    void Awake()
     {
-        
+        if(m_storagePopup == null)
+        {   
+            m_storagePopup = FindAnyObjectByType<PowerupShopPopup>();
+        }
+
+        UpdatePowerUpUI();
     }
 
-    public void OnMagnet()
+    void UpdatePowerUpUI()
     {
+        UpdateSingle(CONSTANTS.MAGNET, m_magnetCountTxt, m_magnetPlusIcon);
+        UpdateSingle(CONSTANTS.SHUFFLE, m_shuffleCountTxt, m_shufflePlusIcon);
+        UpdateSingle(CONSTANTS.ADDTIME, m_timeCountTxt, m_timePlusIcon);
+    }
+
+    void UpdateSingle(string id, TextMeshProUGUI txt, Image plusIcon)
+    {
+        int uses = PowerUpUsesManager.GetUses(id);
+
+        txt.text = uses.ToString();
+
+        if (uses > 0)
+        {
+            txt.text = uses.ToString();
+            txt.transform.parent.gameObject.SetActive(true);
+            plusIcon.gameObject.SetActive(false);
+        }
+        else
+        {
+            txt.transform.parent.gameObject.SetActive(false);
+            plusIcon.gameObject.SetActive(true);
+        }
+    }
+    public void OnClickMagnet()
+    {
+        HandlePowerUp(CONSTANTS.MAGNET, OnMagnet);
+    }
+
+    public void OnClickShuffle()
+    {
+        HandlePowerUp(CONSTANTS.SHUFFLE, OnShuffle);
+    }
+
+    public void OnClickAddTime()
+    {
+        HandlePowerUp(CONSTANTS.ADDTIME, OnAddTime);
+    }
+
+    void HandlePowerUp(string id, System.Action action)
+    {
+        int uses = PowerUpUsesManager.GetUses(id);
+
+        if (uses <= 0)
+        {
+            m_storagePopup.Show(id, UpdatePowerUpUI);
+            return;
+        }
+
+        PowerUpUsesManager.AddUses(id, -1);
+        UpdatePowerUpUI();
+        action?.Invoke();
+    }
+
+
+    private void OnMagnet()
+    {
+
         AudioManager.Instance.PlaySFX(SFXType.Merge);
         Dictionary<string, List<Image>> groups = new Dictionary<string, List<Image>>();
 
@@ -150,7 +219,7 @@ public class Powerups : MonoBehaviour
         });
     }
 
-    public void OnShuffle()
+    private void OnShuffle()
     {
         AudioManager.Instance.PlaySFX(SFXType.Shuffle);
         StartCoroutine(IEShuffle());
@@ -249,7 +318,7 @@ public class Powerups : MonoBehaviour
         }
     }
 
-    public void OnAddMoreGrill()
+    private void OnAddMoreGrill()
     {
         AudioManager.Instance.PlaySFX(SFXType.Drag);
         foreach (var grill in GameManager.Instance.ListGrill)

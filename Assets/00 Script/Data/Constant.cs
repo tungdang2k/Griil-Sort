@@ -13,5 +13,6 @@ public static class CONSTANTS
     public const string MAGNET = "POWERUP_MAGNET";
     public const string SHUFFLE = "POWERUP_SHUFFLE";
     public const string ADDTIME = "POWERUP_ADDTIME";
+    public const string ADD_GRILL = "add_grill";
 
 }
