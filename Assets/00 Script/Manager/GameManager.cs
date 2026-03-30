@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -14,7 +15,7 @@ public class GameManager : Singleton<GameManager>
         Medium = 1,
         Hard = 2
     }
-
+   
     public LevelData CurrentLevelData { get; private set; }
     public Difficultys Difficulty { get; private set; }
     public int CurrentLevel => m_currentLevel;
@@ -25,7 +26,7 @@ public class GameManager : Singleton<GameManager>
     public event Action OnWin;
     public event Action OnOutOfTime;
     public List<GrillStation> ListGrill => m_listGrill;
-
+    public List<GrillStation> GetBonusGrills() => m_bonusGrills;
     [SerializeField] private LevelLoader m_levelLoader;
 
     [SerializeField] private int m_totalGrill;
@@ -36,13 +37,16 @@ public class GameManager : Singleton<GameManager>
     private float m_levelSeconds;
     private int m_currentLevel;
     private List<GrillStation> m_listGrill = new List<GrillStation>();
+    private List<GrillStation> m_bonusGrills = new List<GrillStation>();
     private float m_avgTray; // gia tri trung binh thuc an cho 1 dia
     private List<Sprite> m_totalSpriteFood = new List<Sprite>();
     private bool m_isGameEnded = false;
+    private int m_mergeCount = 0;
+
     protected override void Awake()
     {
         base.Awake();
-        m_currentLevel = PlayerPrefs.GetInt("LEVEL", 1);
+        m_currentLevel = PlayerPrefs.GetInt(CONSTANTS.LEVEL, 1);
 
         Sprite[] loadedSprites = Resources.LoadAll<Sprite>("Items");
         m_totalSpriteFood = loadedSprites.ToList();
@@ -74,8 +78,8 @@ public class GameManager : Singleton<GameManager>
     public void StartLevel()
     {
 
-        m_listGrill?.Clear();   
-
+        m_listGrill?.Clear();
+        m_bonusGrills?.Clear();
         m_gridGrill = GameObject.FindWithTag("GridGrill")?.transform;
         if (!m_gridGrill) return;
 
@@ -90,15 +94,18 @@ public class GameManager : Singleton<GameManager>
         m_levelSeconds = CurrentLevelData.levelSeconds;
         m_allFood = CurrentLevelData.spawnWareData.totalWare;
         m_toltalFood = CurrentLevelData.spawnWareData.totalWarePattern;
-        m_totalGrill = CurrentLevelData.boardData.listTrayData.Count;
         Difficulty = (Difficultys)CurrentLevelData.difficulty;
         //Debug.Log($"[GameManager] Level {level} loaded. AllFood: {m_allFood} | TotalFood: {m_toltalFood}");
+        //m_totalGrill = CurrentLevelData.boardData.listTrayData.Count;
+
+        m_totalGrill = CurrentLevelData.boardData.listTrayData
+       .Count(t => t.id == "normal_tray" || t.id == "target_tray");
     }
     private void CompleteLevel()
     {
         m_currentLevel++;
 
-        PlayerPrefs.SetInt("LEVEL", m_currentLevel);
+        PlayerPrefs.SetInt(CONSTANTS.LEVEL, m_currentLevel);
         PlayerPrefs.Save();
 
     }
@@ -138,55 +145,109 @@ public class GameManager : Singleton<GameManager>
     }
 
 
+   
     private void OnInitLevel()
     {
-        if (m_allFood / 3 < m_toltalFood)
-        {
-            return;
-        }
-        List<Sprite> takeFood = m_totalSpriteFood.OrderBy(x => UnityEngine.Random.value).Take(m_toltalFood).ToList(); // lay ngau nhien so luong thuc an can thiet
-        List<Sprite> useFood = new List<Sprite>();
+        var allTrayData = CurrentLevelData.boardData.listTrayData;
+        if (m_allFood / 3 < m_toltalFood) return;
 
+        // Giới hạn số loại food
+        int activeGrillCount = allTrayData.Count(t =>
+            t != null && (t.id == "normal_tray" || t.id == "target_tray"));
+        //int safeFoodTypes = Mathf.Clamp(m_toltalFood, 1, activeGrillCount / 2);
+
+        List<Sprite> takeFood = m_totalSpriteFood
+            .OrderBy(x => UnityEngine.Random.value)
+            .Take(m_toltalFood)
+            .ToList();
+
+        // Build groups: mỗi loại 3 con
         int groupCount = m_allFood / 3;
+        List<List<Sprite>> foodGroups = new List<List<Sprite>>();
         for (int i = 0; i < groupCount; i++)
         {
             Sprite s = takeFood[i % takeFood.Count];
-            for (int j = 0; j < 3; j++)
-            {
-                useFood.Add(s);
-            }
+            foodGroups.Add(new List<Sprite> { s, s, s });
         }
 
-        for (int i = useFood.Count - 1; i > 0; i--)
-        {
-            int randIndex = UnityEngine.Random.Range(1, i + 1);
+        // Shuffle thứ tự GROUP (không shuffle từng item)
+        foodGroups = foodGroups.OrderBy(_ => UnityEngine.Random.value).ToList();
 
-            Sprite temp = useFood[i];
-            useFood[i] = useFood[randIndex];
-            useFood[randIndex] = temp;
-        }
-
+        // ✅ Distribute theo locality: gom groups vào từng grill
+        // Mỗi grill nhận N groups liền kề → food cùng loại nằm gần nhau
         m_avgTray = UnityEngine.Random.Range(1.5f, 2f);
-        int totalTray = Mathf.CeilToInt(useFood.Count / m_avgTray); // lam tron len so dia can thiet
 
+        // Tính số group mỗi grill nhận
+        List<int> groupsPerGrill = DistributeEvelyn(m_totalGrill, groupCount);
+        // Shuffle để grill nào nhận nhiều/ít group là random
+        groupsPerGrill = groupsPerGrill.OrderBy(_ => UnityEngine.Random.value).ToList();
 
-        List<int> trayPerGrill = DistributeEvelyn(m_totalGrill, totalTray);
-        List<int> foodPerGrill = DistributeEvelyn(m_totalGrill, useFood.Count);
+        // Build listFood cho từng grill từ các groups liền kề
+        List<List<Sprite>> foodPerGrillList = new List<List<Sprite>>();
+        int groupIndex = 0;
+        for (int i = 0; i < m_totalGrill; i++)
+        {
+            List<Sprite> grillFood = new List<Sprite>();
+            int numGroups = (i < groupsPerGrill.Count) ? groupsPerGrill[i] : 0;
 
+            for (int g = 0; g < numGroups && groupIndex < foodGroups.Count; g++)
+            {
+                // ✅ Xáo nhẹ trong group để không xếp thẳng hàng quá lộ liễu
+                List<Sprite> group = foodGroups[groupIndex++];
+                group = group.OrderBy(_ => UnityEngine.Random.value).ToList();
+                grillFood.AddRange(group);
+            }
+
+            foodPerGrillList.Add(grillFood);
+        }
+
+        // Tính tray per grill
+        List<int> trayPerGrill = DistributeEvelyn(m_totalGrill,
+            Mathf.CeilToInt(m_allFood / m_avgTray));
+
+        // Distribute vào grill
+        int normalIndex = 0;
         for (int i = 0; i < m_listGrill.Count; i++)
         {
-            bool active = i < trayPerGrill.Count;
-            m_listGrill[i].gameObject.SetActive(active);
+            if (i >= allTrayData.Count) { m_listGrill[i].gameObject.SetActive(false); continue; }
 
-            if (active)
+            TrayData tData = allTrayData[i];
+
+            if (tData == null || string.IsNullOrEmpty(tData.id))
             {
-                List<Sprite> listFood = Utils.TakeAndRemoveRandom(useFood, foodPerGrill[i]);
-                m_listGrill[i].OnInitGrill(trayPerGrill[i], listFood);
+                m_listGrill[i].SetNullGrill(); continue;
+            }
+            
+            if( tData.id == "bonus_tray")
+            {
+                m_listGrill[i].SetNullGrill();
+                m_bonusGrills.Add(m_listGrill[i]); 
+                continue;
             }
 
+            if (tData.id == "target_tray")
+            {
+                m_listGrill[i].gameObject.SetActive(true);
+                // ✅ Lấy food đã được gom theo locality
+                List<Sprite> lockedFood = normalIndex < foodPerGrillList.Count
+                    ? foodPerGrillList[normalIndex] : new List<Sprite>();
+                m_listGrill[i].OnInitGrill(trayPerGrill[normalIndex], lockedFood, isLocked: true);
+                m_listGrill[i].SetAsLocked();
+                normalIndex++;
+                continue;
+            }
+
+            m_listGrill[i].gameObject.SetActive(true);
+            m_listGrill[i].SetAsNormal();
+            List<Sprite> listFood = normalIndex < foodPerGrillList.Count
+                ? foodPerGrillList[normalIndex] : new List<Sprite>();
+            m_listGrill[i].OnInitGrill(trayPerGrill[normalIndex], listFood, isLocked: false);
+            normalIndex++;
         }
 
+       
     }
+
 
     private List<int> DistributeEvelyn(int grillCount, int totalTrays)
     {
@@ -227,19 +288,39 @@ public class GameManager : Singleton<GameManager>
     {
         
         m_allFood -= 3;
-        if(OnAllFoodChanged != null)
-        {
-            OnAllFoodChanged();
-        }
-        
+        m_mergeCount++;
+        OnAllFoodChanged?.Invoke();
+        UpdateAllLockedGrillText();
+        CheckUnlockGrills();
+
         if (m_allFood <= 0)
         {
-            
             this.CompleteLevel();
             AudioManager.Instance.PlaySFX(SFXType.Win);
             ShowWinPanel();
         }
     }
+
+    private void UpdateAllLockedGrillText()
+    {
+        foreach (var grill in m_listGrill)
+        {
+            if (grill.IsLocked)
+                grill.OnMergeHappened(m_mergeCount);
+        }
+    }
+
+    private void CheckUnlockGrills()
+    {
+        foreach (var grill in m_listGrill)
+        {
+            if (!grill.IsLocked) continue;
+
+            if (m_mergeCount >= grill.RequiredMerge)
+                grill.Unlock();
+        }
+    }
+
     private void ShowWinPanel()
     { 
         if (m_isGameEnded) return;

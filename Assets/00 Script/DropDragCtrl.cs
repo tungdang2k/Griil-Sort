@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using DG.Tweening;
+using static UnityEditor.Progress;
 public class DropDragCtrl : MonoBehaviour
 {
     [SerializeField] private Image m_imgFoodDrag;
@@ -12,50 +14,48 @@ public class DropDragCtrl : MonoBehaviour
     private float m_countTime;
 
     private float _timeAtClick;
+    private Sprite m_dragSprite;
     void Start()
     {
         m_imgFoodDrag.gameObject.SetActive(false);
+        m_imgFoodDrag.raycastTarget = false;
     }
-   
+
     private void Update()
     {
 
-       
         m_countTime += Time.deltaTime;
 
         if (m_countTime >= m_timeCheckSuggest)
         {
-            m_countTime = 0f;   
-                GameManager.Instance?.OnCheckAndShake();
+            m_countTime = 0f;
+            GameManager.Instance?.OnCheckAndShake();
         }
-
-        OnBtnDown();
-        OnHasDrag();
-        OnBtnUp();
+        
     }
-   
-    private void OnBtnDown()
-    {
-        if (Input.GetMouseButtonDown(0)) // check khi click chuot
-        {
 
-            FoodSlot tapSlot = Utils.GetRayCastUI<FoodSlot>(Input.mousePosition); // check o vi tri click chuot xem co Ui gan class FoodSlot
+    public void OnBtnDown(PointerEventData eventData)
+    {
+            GameObject obj = eventData.pointerCurrentRaycast.gameObject;
+            FoodSlot tapSlot = obj.GetComponent<FoodSlot>();// check o vi tri click chuot xem co Ui gan class FoodSlot
             if (tapSlot != null)
             {
                 if (tapSlot.HasFood())
                 {
                     AudioManager.Instance.PlaySFX(SFXType.Click);
                     m_hasDrag = true;
+
                     m_currentfoodSlot?.OnActiveFood(true);
                     m_cacheFood = m_currentfoodSlot = tapSlot;
                     // Gan sprite food cho dummy image
                     m_imgFoodDrag.gameObject.SetActive(true);
+
                     m_imgFoodDrag.sprite = m_currentfoodSlot.GetSpriteFood();
                     m_imgFoodDrag.SetNativeSize();
                     m_imgFoodDrag.transform.position = m_currentfoodSlot.transform.position; // gan vi tri               
 
 
-                    m_imgFoodDrag.transform.position = Input.mousePosition;
+                    m_imgFoodDrag.transform.position = eventData.position;
                     m_offset = Vector2.zero;
                     m_currentfoodSlot.OnActiveFood(false);
                     m_imgFoodDrag.transform.DOScale(Vector3.one * 1.2f, 0.2f);
@@ -83,19 +83,23 @@ public class DropDragCtrl : MonoBehaviour
                 m_currentfoodSlot = null;
                 m_imgFoodDrag.gameObject.SetActive(false);
             }
-
-
-        }
+        
     }
 
-    private void OnHasDrag()
+    public void OnHasDrag(PointerEventData eventData)
     {
         if (m_hasDrag)
         {
+            if (m_currentfoodSlot == null)
+            {
+                m_hasDrag = false;
+                return;
+            }
+
             if (!m_imgFoodDrag || !m_imgFoodDrag.canvas) return;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
              m_imgFoodDrag.canvas.transform as RectTransform,
-                Input.mousePosition,
+                eventData.position,
                 null,
                 out Vector2 localPos
             );
@@ -104,7 +108,13 @@ public class DropDragCtrl : MonoBehaviour
 
             m_countTime = 0f;
 
-            FoodSlot slot = Utils.GetRayCastUI<FoodSlot>(Input.mousePosition);
+            GameObject obj = eventData.pointerCurrentRaycast.gameObject;// check o vi tri click chuot xem co Ui gan class FoodSlot
+            if (obj == null)
+            {
+                OnClearCacheFood();
+                return;
+            }
+            FoodSlot slot = obj.GetComponent<FoodSlot>();
             if (slot != null)
             {
                 if (!slot.HasFood()) // vi tri item chua co food
@@ -144,53 +154,72 @@ public class DropDragCtrl : MonoBehaviour
         }
     }
 
-    private void OnBtnUp()
-    {
-        if (Input.GetMouseButtonUp(0) && m_hasDrag)
-        {
-            AudioManager.Instance.PlaySFX(SFXType.Smoke);
-            if (Time.time - _timeAtClick < 0.15f) // Controll by click
-            {
 
+    public void OnBtnUp(PointerEventData eventData)
+    {
+        if (!m_hasDrag) return;
+
+        AudioManager.Instance.PlaySFX(SFXType.Smoke);
+        m_hasDrag = false;
+        if (Time.time - _timeAtClick < 0.15f)
+        {
+            // xử lý click nếu cần
+        }
+        else
+        {
+            if (m_cacheFood != null)
+            {
+                m_imgFoodDrag.transform.DOMove(m_cacheFood.transform.position, 0.2f)
+                .OnComplete(() =>
+                {
+                    m_imgFoodDrag.gameObject.SetActive(false);
+
+                    m_cacheFood.OnSetSlot(m_currentfoodSlot.GetSpriteFood());
+                    m_cacheFood.OnActiveFood(true);
+                    m_cacheFood.OnCheckMerge();
+
+                    m_currentfoodSlot?.OnCheckPrepareTray();
+
+                    m_cacheFood = null;
+                    m_currentfoodSlot = null;
+                });
             }
             else
             {
-                if (m_cacheFood != null) // xu ly fill item
+                CleanUpAllPreview();
+                m_imgFoodDrag.transform.DOMove(
+                    m_currentfoodSlot.transform.position, 0.3f)
+                .OnComplete(() =>
                 {
-                    m_imgFoodDrag.transform.DOMove(m_cacheFood.transform.position, 0.2f).OnComplete(() =>
-                    {
-                        m_imgFoodDrag.gameObject.SetActive(false);
-                        m_cacheFood.OnSetSlot(m_currentfoodSlot.GetSpriteFood());
-                        m_cacheFood.OnActiveFood(true);
-                        m_cacheFood.OnCheckMerge();
-                        m_currentfoodSlot?.OnCheckPrepareTray();
-                        m_cacheFood = null;
-                        m_currentfoodSlot = null;
-                    });
-                    m_imgFoodDrag.transform.DOScale(Vector3.one, 0.22f);
-                }
-                else // xu ly tro ve vi tri ban dau
-                {
-                    m_imgFoodDrag.transform.DOMove(m_currentfoodSlot.transform.position, 0.3f).OnComplete(() =>
-                    {
-                        m_imgFoodDrag.gameObject.SetActive(false);
-                        m_currentfoodSlot.OnActiveFood(true);
-                    });
-                    m_imgFoodDrag.transform.DOScale(Vector3.one, 0.3f);
-                }
+                    m_imgFoodDrag.gameObject.SetActive(false);
+                    m_currentfoodSlot.OnActiveFood(true);
+                });
             }
-            m_hasDrag = false;
-
         }
+
+        m_hasDrag = false;
     }
     private void OnClearCacheFood()
     {
+        if (m_currentfoodSlot == null)
+        {
+            CleanUpAllPreview();
+            return;
+        }
+
         if (m_cacheFood != null && m_cacheFood.GetInstanceID() != m_currentfoodSlot.GetInstanceID())
         {
             m_cacheFood.OnHideFood();
             m_cacheFood = null;
         }
     }
-
+    private void CleanUpAllPreview()
+    {
+        if (m_cacheFood != null)
+        {
+            m_cacheFood.OnHideFood(); // ✅ Ẩn ô preview trắng
+            m_cacheFood = null;
+        }
+    }
 
 }

@@ -8,5 +8,10 @@ public static class CONSTANTS
     public const string GOLD_KEY = "PLAYER_GOLD";
     public const string MUSIC_KEY = "MUSIC_ON";
     public const string SOUND_KEY = "SOUND_ON";
+    public const string LEVEL = "LEVEL";
+
+    public const string MAGNET = "POWERUP_MAGNET";
+    public const string SHUFFLE = "POWERUP_SHUFFLE";
+    public const string ADDTIME = "POWERUP_ADDTIME";
 
 }

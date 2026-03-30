@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -36,28 +35,28 @@ public static class Utils
         return result;
     }
 
-    public static T GetRayCastUI<T>(Vector2 position) where T : MonoBehaviour
-    {
-        PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
-        pointerEventData.position = position;
-        List<RaycastResult> list = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(pointerEventData, list);
+    //public static T GetRayCastUI<T>(Vector2 position) where T : MonoBehaviour
+    //{
+    //    PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
+    //    pointerEventData.position = position;
+    //    List<RaycastResult> list = new List<RaycastResult>();
+    //    EventSystem.current.RaycastAll(pointerEventData, list);
 
-        if(list.Count > 0)
-        {
-            foreach (var item in list)
-            {
-                T component = item.gameObject.GetComponent<T>();
-                if (component != null)
-                {
-                    return component;
-                }
-            }
-        }
+    //    if (list.Count > 0)
+    //    {
+    //        foreach (var item in list)
+    //        {
+    //            T component = item.gameObject.GetComponent<T>();
+    //            if (component != null)
+    //            {
+    //                return component;
+    //            }
+    //        }
+    //    }
 
-        return null;
+    //    return null;
 
 
-    }
+    //}
 
 }

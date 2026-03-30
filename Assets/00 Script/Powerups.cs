@@ -160,25 +160,23 @@ public class Powerups : MonoBehaviour
     private IEnumerator IEShuffle()
     {
         List<Image> result = new List<Image>();
-
         foreach (var grill in GameManager.Instance.ListGrill)
         {
             if (grill.gameObject.activeInHierarchy)
-            {
                 result.AddRange(grill.ListFoodActive());
-
-            }
         }
 
         if (result.Count <= 1)
             yield break;
 
         yield return new WaitForSeconds(0.1f);
-
         float jumpTime = 0.25f;
         float fallTime = 0.35f;
 
-        // 1️⃣ Jump lên đồng loạt
+        foreach (var img in result)
+            img.transform.DOKill();
+
+        // 1️⃣ Jump lên đồng loạt (giữ nguyên)
         foreach (var img in result)
         {
             img.transform
@@ -188,28 +186,67 @@ public class Powerups : MonoBehaviour
 
         yield return new WaitForSeconds(jumpTime * 0.6f);
 
-        // 2️⃣ Shuffle sprite (instant)
-        for (int i = 0; i < result.Count; i++)
-        {
-            int n = Random.Range(i, result.Count);
+        // 2️⃣ Smart Shuffle sprite
+        SmartShuffle(result);
 
-            Sprite temp = result[i].sprite;
-            result[i].sprite = result[n].sprite;
-            result[n].sprite = temp;
+        foreach (var img in result)
+            img.transform.DOKill();
 
-            result[i].SetNativeSize();
-            result[n].SetNativeSize();
-        }
-
-        // 3️⃣ Rơi xuống đồng loạt
+        // 3️⃣ Rơi xuống đồng loạt (giữ nguyên)
         foreach (var img in result)
         {
             img.transform
                 .DOScale(1f, fallTime)
                 .SetEase(Ease.OutBack);
         }
+    }
 
+    private void SmartShuffle(List<Image> result)
+    {
+        // B1: Lấy danh sách sprite hiện tại
+        List<Sprite> sprites = result.Select(img => img.sprite).ToList();
 
+        // B2: Đếm số lượng từng loại
+        Dictionary<string, List<Sprite>> groups = new Dictionary<string, List<Sprite>>();
+        foreach (var sp in sprites)
+        {
+            if (!groups.ContainsKey(sp.name))
+                groups[sp.name] = new List<Sprite>();
+            groups[sp.name].Add(sp);
+        }
+
+        // B3: Tách group có thể merge (>= 3) và group lẻ
+        List<Sprite> mergeableSprites = new List<Sprite>();
+        List<Sprite> remainingSprites = new List<Sprite>();
+
+        foreach (var kvp in groups)
+        {
+            int fullGroups = kvp.Value.Count / 3;
+            int leftover = kvp.Value.Count % 3;
+
+            for (int i = 0; i < fullGroups * 3; i++)
+                mergeableSprites.Add(kvp.Value[i]);
+
+            for (int i = fullGroups * 3; i < kvp.Value.Count; i++)
+                remainingSprites.Add(kvp.Value[i]);
+        }
+
+        // B4: Shuffle nội bộ từng nhóm
+        mergeableSprites = mergeableSprites.OrderBy(_ => Random.value).ToList();
+        remainingSprites = remainingSprites.OrderBy(_ => Random.value).ToList();
+
+        // B5: Ghép lại — mergeableSprites đứng đầu, lẻ đứng sau
+        // → đảm bảo các slot đầu tiên (visible) chứa food có thể merge
+        List<Sprite> finalOrder = new List<Sprite>();
+        finalOrder.AddRange(mergeableSprites);
+        finalOrder.AddRange(remainingSprites);
+
+        // B6: Gán lại sprite
+        for (int i = 0; i < result.Count; i++)
+        {
+            result[i].sprite = finalOrder[i];
+            result[i].SetNativeSize();
+        }
     }
 
     public void OnAddMoreGrill()

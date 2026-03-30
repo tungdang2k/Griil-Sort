@@ -1,20 +1,45 @@
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class FoodSlot : MonoBehaviour
+public class FoodSlot : MonoBehaviour, IBeginDragHandler,
+    IDragHandler,
+    IEndDragHandler
 {
+    private DropDragCtrl m_dropDragCtrl;
+
     private Color m_nomalColor = new Color(1f, 1f, 1f, 1f);
     private Color m_fadeColor = new Color(1f,1f, 1f, 0.5f);
     private Image m_imgFood;
     private GrillStation m_grillCtrl;
-
     public Image ImgFood => m_imgFood;
     private void Awake()
     {
+       
+        m_dropDragCtrl = FindAnyObjectByType<DropDragCtrl>();
         m_grillCtrl = transform.parent.parent.GetComponent<GrillStation>();
         m_imgFood = this.transform.GetChild(0).GetComponent<Image>();
         m_imgFood.gameObject.SetActive(false);
+    }
+
+    
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        if (!HasFood()) return;
+
+        m_dropDragCtrl.OnBtnDown(eventData);
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        m_dropDragCtrl.OnHasDrag(eventData);
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        m_dropDragCtrl.OnBtnUp(eventData);
     }
 
     public void OnSetSlot(Sprite foodSprite)
@@ -87,5 +112,7 @@ public class FoodSlot : MonoBehaviour
         m_imgFood.sprite = null;
         OnCheckPrepareTray();
     }
+
+
 
 }

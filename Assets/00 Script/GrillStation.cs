@@ -1,24 +1,114 @@
 ﻿using System.Collections.Generic;
+using DG.Tweening;
 using NUnit.Framework;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GrillStation : MonoBehaviour
 {
     [SerializeField] private Transform m_trayContainer, m_slotContainer;
+    [SerializeField] private GameObject m_normalVisual;  // sprite bếp bình thường
+    [SerializeField] private GameObject m_lockedVisual;
+    [SerializeField] private GameObject m_TraysVisual;
+    [SerializeField] private TextMeshProUGUI m_lockCountText;
+
+
 
     private List<TrayItem> m_totalTrays = new List<TrayItem>();
     private List<FoodSlot> m_totalSlot = new List<FoodSlot>();
     private Stack<TrayItem> m_stackTray = new Stack<TrayItem>();
-
+    public bool IsLocked { get; private set; }
+    public int RequiredMerge { get; private set; }
     public List<FoodSlot> totalSlot => m_totalSlot;
     public Stack<TrayItem> totalTrays => m_stackTray;
+
     private void Awake()
     {
         m_totalSlot = Utils.GetListInChild<FoodSlot>(m_slotContainer);
         m_totalTrays = Utils.GetListInChild<TrayItem>(m_trayContainer);
     }
-    public void OnInitGrill(int totalTray, List<Sprite> listFood)
+
+    public void SetAsNormal()
+    {
+        m_lockedVisual.SetActive(false);  // ẩn LockGrill
+        m_normalVisual.SetActive(true);   // hiện SlotContainer
+    }
+
+    public void SetNullGrill()
+    {
+        m_lockedVisual.SetActive(false);  
+        m_normalVisual.SetActive(false);
+        m_TraysVisual.SetActive(false);
+    }
+
+    public void SetBonusGrill()
+    {
+        
+
+        m_normalVisual.SetActive(true);
+
+        transform.localScale = Vector3.zero;
+        transform.DOScale(Vector3.one, 0.4f)
+            .SetEase(Ease.OutBack);
+    }
+
+    public List<string> GetTrayFoodNames()
+    {
+        List<string> names = new List<string>();
+        foreach (var tray in totalTrays)
+        {
+            foreach (var img in tray.FoodList)
+            {
+                if (img.gameObject.activeInHierarchy && img.sprite != null)
+                    names.Add(img.sprite.name);
+            }
+        }
+        return names;
+    }
+
+   
+
+    public void SetAsLocked()
+    {
+        IsLocked = true;
+
+        RequiredMerge =  Random.Range(3,6);
+
+        UpdateLockText(RequiredMerge);
+
+
+        m_lockedVisual.SetActive(true);
+        m_normalVisual.SetActive(false);
+
+        
+    }
+
+    public void OnMergeHappened(int currentMergeCount)
+    {
+        if (!IsLocked) return;
+
+        int remaining = RequiredMerge - currentMergeCount;
+        remaining = Mathf.Max(0, remaining); // không âm
+        UpdateLockText(remaining);
+    }
+    private void UpdateLockText(int value)
+    {
+        if (m_lockCountText != null)
+            m_lockCountText.text = value.ToString();
+    }
+    // Mở khóa bếp, init food như bình thường
+    public void Unlock()
+    {
+        IsLocked = false;
+
+        m_lockedVisual.SetActive(false); // hoặc play DOTween animation
+        m_normalVisual.SetActive(true);
+
+        OnPrepareTray();
+    }
+
+    public void OnInitGrill(int totalTray, List<Sprite> listFood, bool isLocked)
     {
         // ===== GUARD =====
         if (totalTray <= 0)
@@ -33,24 +123,26 @@ public class GrillStation : MonoBehaviour
 
 
         int maxSlot = m_totalSlot.Count;
-        int foodOnSlot = Random.Range(1, maxSlot + 1);
-        foodOnSlot = Mathf.Min(foodOnSlot, listFood.Count);
+       
 
         // clone để không phá list gốc
         List<Sprite> pool = new List<Sprite>(listFood);
-        List<Sprite> slotFood = Utils.TakeAndRemoveRandom(pool, foodOnSlot);
 
-        foreach (var food in slotFood)
+        if (!isLocked)
         {
-            FoodSlot slot = RandomSlot();
-            if (slot == null)
-            {
-                break;
-            }
-            slot.OnSetSlot(food);
-            listFood.Remove(food);
-        }
+            int foodOnSlot = Random.Range(1, maxSlot + 1);
+            foodOnSlot = Mathf.Min(foodOnSlot, pool.Count);
 
+            List<Sprite> slotFood = Utils.TakeAndRemoveRandom(pool, foodOnSlot);
+            foreach (var food in slotFood)
+            {
+                FoodSlot slot = RandomSlot();
+                if (slot == null) break;
+                slot.OnSetSlot(food);
+                listFood.Remove(food);
+            }
+        }
+       
 
         List<List<Sprite>> traysFood = new List<List<Sprite>>();
 
