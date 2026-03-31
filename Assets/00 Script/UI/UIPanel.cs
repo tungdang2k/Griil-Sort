@@ -1,24 +1,51 @@
+﻿using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
 public class UIPanel : MonoBehaviour
 {
-
-
     [SerializeField] private GameObject m_panelToActivate;
-    [SerializeField] private TextMeshProUGUI m_textLevel;
-    [SerializeField] private TextMeshProUGUI m_textDifficulty;
+    [SerializeField] private CanvasGroup m_canvasGroup;
+
     private void Start()
     {
-        if (m_textLevel == null || m_textDifficulty == null ) return;
-        m_textLevel.text = "LEVEL " + GameManager.Instance.CurrentLevel;
-        m_textDifficulty.text = GameManager.Instance.Difficulty.ToString();
+        if(m_canvasGroup == null)
+        {
+            m_canvasGroup = GetComponent<CanvasGroup>();
+        }
     }
-    public void OnActivePanel()
+
+    public void OnActivePanel(bool affectTimeScale = false)
     {
+       
         if (m_panelToActivate == null) return;
+
         AudioManager.Instance.PlaySFX(SFXType.Click);
-        m_panelToActivate.SetActive(!m_panelToActivate.activeSelf);
+
+        bool isActive = m_panelToActivate.activeSelf;
+
+        if (!isActive)
+        {
+            m_panelToActivate.SetActive(true);
+            m_canvasGroup.alpha = 0;
+            m_panelToActivate.transform.localScale = Vector3.zero;
+
+            m_panelToActivate.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).SetUpdate(true);
+            m_canvasGroup.DOFade(1f, 0.25f).SetUpdate(true);
+            if (affectTimeScale)
+                Time.timeScale = 0f;
+        }
+        else
+        {
+            m_panelToActivate.transform.DOScale(0f, 0.2f).SetEase(Ease.InBack).SetUpdate(true);
+            m_canvasGroup.DOFade(0f, 0.2f).SetUpdate(true).OnComplete(() =>
+            {
+                m_panelToActivate.SetActive(false);
+            });
+            if (affectTimeScale)
+                Time.timeScale = 1f;
+        }
+
     }
 
 

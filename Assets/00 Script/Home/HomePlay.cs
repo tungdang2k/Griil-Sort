@@ -18,7 +18,7 @@ public class HomePlay : MonoBehaviour
         m_levelText.text = "Level " + m_level;
     }
 
-    public void OnPlayeGame()
+    public void OnPlayGame()
     {
         GameManager.Instance.StartLevel();
         LoadingSceneManager.Instance.SwichToScene(CONSTANTS.MAINSCENE);

@@ -30948,6 +30948,8 @@ GameObject:
   - component: {fileID: 1276971134}
   - component: {fileID: 1276971133}
   - component: {fileID: 1276971135}
+  - component: {fileID: 1276971137}
+  - component: {fileID: 1276971136}
   m_Layer: 5
   m_Name: PausePanel
   m_TagString: Untagged
@@ -31025,7 +31027,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 969c90c3407b3664a9b705a8cd92962e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_pausePanel: {fileID: 1276971131}
+  m_pausePanel: {fileID: 0}
+--- !u!225 &1276971136
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276971131}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &1276971137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276971131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c87be332a4acbc4d831f0b95526ea9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_panelToActivate: {fileID: 1276971131}
+  m_canvasGroup: {fileID: 1276971136}
 --- !u!1 &1281613285
 GameObject:
   m_ObjectHideFlags: 0
@@ -48890,9 +48918,25 @@ PrefabInstance:
     m_TransformParent: {fileID: 1276971132}
     m_Modifications:
     - target: {fileID: 826169994606417573, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 826169994606417573, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1276971135}
+      objectReference: {fileID: 1276971137}
+    - target: {fileID: 826169994606417573, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnActivePanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 826169994606417573, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: UIPanel, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 826169994606417573, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_BoolArgument
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 914820394503844476, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -48903,23 +48947,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1559245299543839115, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 1
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1559245299543839115, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1276971135}
+      objectReference: {fileID: 1276971137}
     - target: {fileID: 1559245299543839115, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1559245299543839115, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnClickPauseBtn
+      value: OnActivePanel
       objectReference: {fileID: 0}
     - target: {fileID: 1559245299543839115, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: PauseCtrl, Assembly-CSharp
+      value: UIPanel, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1559245299543839115, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_BoolArgument
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1559245299543839115, guid: 1de60f0f1e259a04f83d479fdaace23a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -49248,9 +49296,25 @@ PrefabInstance:
     m_TransformParent: {fileID: 1196745573}
     m_Modifications:
     - target: {fileID: 959265758949624571, guid: 09d5ae91ea690604fbc675bc633c5051, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 959265758949624571, guid: 09d5ae91ea690604fbc675bc633c5051, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1276971135}
+      objectReference: {fileID: 1276971137}
+    - target: {fileID: 959265758949624571, guid: 09d5ae91ea690604fbc675bc633c5051, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnActivePanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 959265758949624571, guid: 09d5ae91ea690604fbc675bc633c5051, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: UIPanel, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 959265758949624571, guid: 09d5ae91ea690604fbc675bc633c5051, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_BoolArgument
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6936197001279183931, guid: 09d5ae91ea690604fbc675bc633c5051, type: 3}
       propertyPath: m_Name
       value: BtnSetting
