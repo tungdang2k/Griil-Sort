@@ -5,7 +5,7 @@ using System.Net.NetworkInformation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
-
+using UIImage = UnityEngine.UI.Image;
 
 public class GameManager : Singleton<GameManager>
 {
@@ -15,7 +15,7 @@ public class GameManager : Singleton<GameManager>
         Medium = 1,
         Hard = 2
     }
-   
+
     public LevelData CurrentLevelData { get; private set; }
     public Difficultys Difficulty { get; private set; }
     public int CurrentLevel => m_currentLevel;
@@ -33,7 +33,7 @@ public class GameManager : Singleton<GameManager>
     [SerializeField] private int m_allFood;
     [SerializeField] private int m_toltalFood;
 
-     private Transform m_gridGrill;
+    private Transform m_gridGrill;
     private float m_levelSeconds;
     private int m_currentLevel;
     private List<GrillStation> m_listGrill = new List<GrillStation>();
@@ -69,12 +69,12 @@ public class GameManager : Singleton<GameManager>
 
     void Update()
     {
-    //    Debug.Log(
-    //    $"[FRAME {Time.frameCount}] RealFoodInScene = {GetTotalRealFoodInScene()}"
-    //);
+        Debug.Log(
+        $"[FRAME {Time.frameCount}] RealFoodInScene = {GetTotalRealFoodInScene()}"
+    );
 
     }
-   
+
     public void StartLevel()
     {
 
@@ -85,6 +85,8 @@ public class GameManager : Singleton<GameManager>
 
         m_listGrill = Utils.GetListInChild<GrillStation>(m_gridGrill);
         m_isGameEnded = false;
+        m_mergeCount = 0;        // ✅ reset merge count
+        m_allFood = 0;
         LoadLevel(m_currentLevel);
         OnInitLevel();
     }
@@ -99,7 +101,7 @@ public class GameManager : Singleton<GameManager>
         //m_totalGrill = CurrentLevelData.boardData.listTrayData.Count;
 
         m_totalGrill = CurrentLevelData.boardData.listTrayData
-       .Count(t => t.id == "normal_tray" || t.id == "target_tray");
+       .Count(t => t.id != "bonus_tray" );
     }
     private void CompleteLevel()
     {
@@ -284,6 +286,77 @@ public class GameManager : Singleton<GameManager>
 
     }
 
+    public void SilentMergeLeftovers()
+    {
+        var groups = new Dictionary<string, List<(UIImage img, FoodSlot slot, TrayItem tray)>>();
+
+        foreach (var grill in m_listGrill)
+        {
+            if (!grill.gameObject.activeInHierarchy) continue;
+
+            foreach (var slot in grill.totalSlot)
+            {
+                if (!slot.HasFood()) continue;
+                string name = slot.GetSpriteFood().name;
+                if (!groups.ContainsKey(name))
+                    groups[name] = new List<(UIImage, FoodSlot, TrayItem)>();
+                groups[name].Add((slot.ImgFood, slot, null));
+            }
+
+            foreach (var tray in grill.totalTrays)
+            {
+                if (!tray.gameObject.activeInHierarchy) continue;
+                foreach (UIImage img in tray.FoodList)
+                {
+                    if (!img.gameObject.activeInHierarchy) continue;
+                    string name = img.sprite.name;
+                    if (!groups.ContainsKey(name))
+                        groups[name] = new List<(UIImage, FoodSlot, TrayItem)>();
+                    groups[name].Add((img, null, tray));
+                }
+            }
+        }
+
+        bool anyRemoved = false;
+        foreach (var kvp in groups)
+        {
+            if (kvp.Value.Count >= 3) continue;
+
+            foreach (var (img, slot, tray) in kvp.Value)
+            {
+                if (slot != null)
+                {
+                    slot.OnHideFood();
+                    slot.ImgFood.sprite = null;
+                }
+                else
+                {
+                    img.gameObject.SetActive(false);
+                    img.sprite = null;
+                    tray?.OnFoodRemoved();
+                }
+            }
+
+            foreach (var (img, slot, tray) in kvp.Value)
+                slot?.OnCheckPrepareTray();
+
+            m_allFood -= 3;
+            m_mergeCount++;
+            anyRemoved = true;
+        }
+
+        if (anyRemoved)
+        {
+            OnAllFoodChanged?.Invoke();
+            if (m_allFood <= 0)
+            {
+                CompleteLevel();
+                AudioManager.Instance.PlaySFX(SFXType.Win);
+                ShowWinPanel();
+            }
+        }
+    }
+
     public void OnMinusFood()
     {
         
@@ -292,7 +365,7 @@ public class GameManager : Singleton<GameManager>
         OnAllFoodChanged?.Invoke();
         UpdateAllLockedGrillText();
         CheckUnlockGrills();
-
+        SilentMergeLeftovers();
         if (m_allFood <= 0)
         {
             this.CompleteLevel();

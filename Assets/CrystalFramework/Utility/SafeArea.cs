@@ -103,7 +103,6 @@ namespace Crystal
         [SerializeField] bool ConformX = true;  // Conform to screen safe area on X-axis (default true, disable to ignore)
         [SerializeField] bool ConformY = true;  // Conform to screen safe area on Y-axis (default true, disable to ignore)
         [SerializeField] bool Logging = false;  // Conform to screen safe area on Y-axis (default true, disable to ignore)
-
         void Awake ()
         {
             Panel = GetComponent<RectTransform> ();
@@ -116,6 +115,8 @@ namespace Crystal
 
             Refresh ();
         }
+
+       
 
         void Update ()
         {
@@ -210,10 +211,14 @@ namespace Crystal
                 Vector2 anchorMin = r.position;
                 Vector2 anchorMax = r.position + r.size;
                 anchorMin.x /= Screen.width;
-                anchorMin.y /= Screen.height;
+                //anchorMin.y /= Screen.height;
                 anchorMax.x /= Screen.width;
-                anchorMax.y /= Screen.height;
-
+                //anchorMax.y /= Screen.height;
+                float bannerHeightDp = 50f;
+                float dpi = Screen.dpi > 0 ? Screen.dpi : 160f;
+                float bannerHeightPx = bannerHeightDp * (dpi / 160f);
+                anchorMin.y = (r.y + bannerHeightPx) / Screen.height;
+                anchorMax.y = (r.y + r.height) / Screen.height;
                 // Fix for some Samsung devices (e.g. Note 10+, A71, S20) where Refresh gets called twice and the first time returns NaN anchor coordinates
                 // See https://forum.unity.com/threads/569236/page-2#post-6199352
                 if (anchorMin.x >= 0 && anchorMin.y >= 0 && anchorMax.x >= 0 && anchorMax.y >= 0)
@@ -231,3 +236,4 @@ namespace Crystal
         }
     }
 }
+

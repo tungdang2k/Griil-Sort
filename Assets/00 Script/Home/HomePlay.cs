@@ -6,7 +6,7 @@ public class HomePlay : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI m_levelText;
     private int m_level;
-
+    [SerializeField] private int showAdEveryNLevels = 1;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -18,12 +18,33 @@ public class HomePlay : MonoBehaviour
         m_levelText.text = "Level " + m_level;
     }
 
+
+
     public void OnPlayGame()
+    {
+        AudioManager.Instance.PlaySFX(SFXType.Click);
+
+        int levelsPlayed = PlayerPrefs.GetInt("LEVELS_PLAYED_SINCE_AD", 0) + 1;
+        PlayerPrefs.SetInt("LEVELS_PLAYED_SINCE_AD", levelsPlayed);
+
+        bool shouldShowAd = levelsPlayed >= showAdEveryNLevels;
+
+        if (shouldShowAd)
+        {
+            PlayerPrefs.SetInt("LEVELS_PLAYED_SINCE_AD", 0);
+            AdsManager.Instance.TryShowInterstitial(() =>
+            {
+                StartGame();
+            });
+        }
+        else
+        {
+            StartGame();
+        }
+    }
+    private void StartGame()
     {
         GameManager.Instance.StartLevel();
         LoadingSceneManager.Instance.SwichToScene(CONSTANTS.MAINSCENE);
-        AudioManager.Instance.PlaySFX(SFXType.Click);
-        Debug.Log("Play Game");
     }
-
 }

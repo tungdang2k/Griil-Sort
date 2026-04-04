@@ -120,7 +120,7 @@ public class GrillStation : MonoBehaviour
         {
             return;
         }
-
+        m_stackTray.Clear();
 
         int maxSlot = m_totalSlot.Count;
        
@@ -256,6 +256,35 @@ public class GrillStation : MonoBehaviour
                 }
             }
             tray.gameObject.SetActive(false);
+            CleanEmptyTraysInStack();
+        }
+    }
+
+    private void CleanEmptyTraysInStack()
+    {
+        while (m_stackTray.Count > 0)
+        {
+            TrayItem top = m_stackTray.Peek();
+
+            bool isEmpty = true;
+            foreach (var img in top.FoodList)
+            {
+                if (img.gameObject.activeInHierarchy)
+                {
+                    isEmpty = false;
+                    break;
+                }
+            }
+
+            if (isEmpty)
+            {
+                m_stackTray.Pop();
+                top.gameObject.SetActive(false);
+            }
+            else
+            {
+                break; // tray này còn food → dừng
+            }
         }
     }
     public void OnTrayEmpty(TrayItem tray)
@@ -269,6 +298,8 @@ public class GrillStation : MonoBehaviour
         {
             m_stackTray.Peek().gameObject.SetActive(true);
         }
+
+        CleanEmptyTraysInStack();
     }
 
 
@@ -328,21 +359,31 @@ public class GrillStation : MonoBehaviour
             }
         }
 
-        for(int j = 0; j < m_totalTrays.Count; j++)
+        //for (int j = 0; j < m_totalTrays.Count; j++)
+        //{
+
+        //    TrayItem tray = m_totalTrays[j];
+        //    if (tray.gameObject.activeInHierarchy)
+        //    {
+        //        for (int k = 0; k < tray.FoodList.Count; k++)
+        //        {
+        //            if (tray.FoodList[k].gameObject.activeInHierarchy)
+        //            {
+        //                list.Add(tray.FoodList[k]);
+        //            }
+        //        }
+        //    }
+
+        //}
+
+        foreach (var tray in m_stackTray)
         {
-
-            TrayItem tray = m_totalTrays[j];
-            if(tray.gameObject.activeInHierarchy)
+            if (!tray.gameObject.activeInHierarchy) continue;
+            foreach (var img in tray.FoodList)
             {
-                for(int k = 0; k < tray.FoodList.Count; k++)
-                {
-                    if(tray.FoodList[k].gameObject.activeInHierarchy)
-                    {
-                        list.Add(tray.FoodList[k]);
-                    }
-                }
+                if (img.gameObject.activeInHierarchy)
+                    list.Add(img);
             }
-
         }
 
         return list;

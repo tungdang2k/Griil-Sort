@@ -10,20 +10,21 @@ public class TrayItem : MonoBehaviour
     private void Awake()
     {
         m_FoodList = Utils.GetListInChild<Image>(transform);
-        for(int i = 0; i < m_FoodList.Count; i++)
+        for (int i = 0; i < m_FoodList.Count; i++)
         {
             m_FoodList[i].gameObject.SetActive(false);
         }
     }
 
+
     public void OnSetFood(List<Sprite> items)
     {
-        if(items.Count <= m_FoodList.Count)
+        if (items.Count <= m_FoodList.Count)
         {
-            for(int i = 0; i < items.Count; i++)
+            for (int i = 0; i < items.Count; i++)
             {
                 Image slot = RandomSlot();
-                if(slot != null)
+                if (slot != null)
                 {
                     slot.sprite = items[i];
                     slot.gameObject.SetActive(true);
@@ -44,7 +45,7 @@ public class TrayItem : MonoBehaviour
         }
 
         if (inactiveSlots.Count == 0)
-            return null; 
+            return null;
 
         int n = Random.Range(0, inactiveSlots.Count);
         return inactiveSlots[n];

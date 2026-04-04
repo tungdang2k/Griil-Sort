@@ -82,143 +82,162 @@ public class Powerups : MonoBehaviour
             m_storagePopup.Show(id, UpdatePowerUpUI);
             return;
         }
-
+        if (id == CONSTANTS.MAGNET && !CanUseMagnet())
+        {
+            // TODO: hiện thông báo "Không có nhóm nào đủ 3 để hút"
+            Debug.Log("Magnet: không có nhóm nào >= 3");
+            return;
+        }
         PowerUpUsesManager.AddUses(id, -1);
         UpdatePowerUpUI();
         action?.Invoke();
     }
-
+    private bool CanUseMagnet()
+    {
+        var allFood = GetAllActiveFood();
+        var groups = new Dictionary<string, int>();
+        foreach (var (img, slot, tray) in allFood)
+        {
+            string name = img.sprite.name;
+            if (!groups.ContainsKey(name)) groups[name] = 0;
+            groups[name]++;
+        }
+        return groups.Any(kvp => kvp.Value >= 3);
+    }
 
     private void OnMagnet()
     {
 
         AudioManager.Instance.PlaySFX(SFXType.Merge);
-        Dictionary<string, List<Image>> groups = new Dictionary<string, List<Image>>();
 
-        foreach (var grill in GameManager.Instance.ListGrill)
+        var allFood = GetAllActiveFood();
+        var groups = new Dictionary<string, List<Image>>();
+
+        foreach (var (img, slot, tray) in allFood)
         {
-            if (grill.gameObject.activeInHierarchy)
-            {
-                foreach (var slot in grill.totalSlot)
-                {
-                    if (slot.HasFood())
-                    {
-                        string name = slot.GetSpriteFood().name;
-                        if (!groups.ContainsKey(name))
-                        {
-                            groups.Add(name, new List<Image>());
-                        }
-                        groups[name].Add(slot.ImgFood);
-
-                    }
-                }
-
-
-                TrayItem tray = grill.GetFistTray();
-
-                if (tray != null)
-                {
-                    foreach (var img in tray.FoodList)
-                    {
-                        if (img.gameObject.activeInHierarchy)
-                        {
-                            string name = img.sprite.name;
-                            if (!groups.ContainsKey(name))
-                            {
-                                groups.Add(name, new List<Image>());
-                            }
-                            groups[name].Add(img);
-                        }
-                    }
-                }
-
-
-            }
-
-
-
+            string name = img.sprite.name;
+            if (!groups.ContainsKey(name))
+                groups[name] = new List<Image>();
+            groups[name].Add(img);
         }
+
         foreach (var kvp in groups)
         {
             if (kvp.Value.Count >= 3)
             {
                 MagnetGroup(kvp.Value);
-                break; // chỉ hút 1 group
+                break;
             }
         }
 
-        
-
     }
 
+   
     private void MagnetGroup(List<Image> items)
     {
         if (items == null || items.Count < 3) return;
         if (m_imgDummyList.Count < 3) return;
+
         float duration = 0.35f;
         List<Image> foods = items.Take(3).ToList();
+
         for (int i = 0; i < foods.Count; i++)
         {
-            Image imgFood = items[i];
-            Image imgDummy = m_imgDummyList[i]; // pool sẵn 3 dummy
+            Image imgFood = foods[i];
+            Image imgDummy = m_imgDummyList[i];
+            Image capturedDummy = imgDummy;
 
-
-            // setup dummy
             imgDummy.sprite = imgFood.sprite;
             imgDummy.SetNativeSize();
             imgDummy.transform.position = imgFood.transform.position;
             imgDummy.transform.rotation = Quaternion.identity;
             imgDummy.color = Color.white;
             imgDummy.gameObject.SetActive(true);
-            imgFood.gameObject.SetActive(false);
-
+            imgFood.gameObject.SetActive(false); // ẩn tạm để tween
             imgDummy.transform.DOKill();
 
             Sequence seq = DOTween.Sequence();
-
-            seq.Join(
-                imgDummy.transform.DOMove(m_magnetTarget.position, duration)
-                    .SetEase(Ease.InBack)
-            );
-
-            seq.Join(
-                imgDummy.transform.DORotate(
-                    new Vector3(0, 0, UnityEngine.Random.Range(-180, 180)),
-                    duration,
-                    RotateMode.FastBeyond360
-                )
-            );
-
+            seq.Join(capturedDummy.transform
+                .DOMove(m_magnetTarget.position, duration)
+                .SetEase(Ease.InBack));
+            seq.Join(capturedDummy.transform.DORotate(
+                new Vector3(0, 0, Random.Range(-180, 180)),
+                duration, RotateMode.FastBeyond360));
             seq.OnComplete(() =>
             {
-
-                imgDummy.gameObject.SetActive(false);
-                imgDummy.transform.rotation = Quaternion.identity;
-                TrayItem tray = imgFood.GetComponentInParent<TrayItem>();
-                if (tray != null)
-                {
-                    tray.OnFoodRemoved();
-                }
+                capturedDummy.gameObject.SetActive(false);
+                capturedDummy.transform.rotation = Quaternion.identity;
             });
+            
         }
 
-        // xử lý logic sau khi animation xong
         DOVirtual.DelayedCall(duration, () =>
         {
-            List<Image> foods = items.Take(3).ToList();
             foreach (var img in foods)
             {
+                // Ưu tiên xử lý FoodSlot trước
                 FoodSlot slot = img.GetComponentInParent<FoodSlot>();
                 if (slot != null)
                 {
-                    slot.ClearByMagnet();
+                    // ✅ Xóa food nhưng KHÔNG kéo tray lên ngay
+                    slot.OnHideFood();
+                    slot.ImgFood.sprite = null;
+                    // Không gọi ClearByMagnet vì nó trigger OnCheckPrepareTray
+                    // gây ra food mới xuất hiện và bị mất đếm
+                    continue;
+                }
+
+                // Nếu food nằm trong Tray
+                TrayItem tray = img.GetComponentInParent<TrayItem>();
+                if (tray != null)
+                {
+                    img.gameObject.SetActive(false);
+                    img.sprite = null;
+                    tray.OnFoodRemoved();
                 }
             }
-            GameManager.Instance.OnMinusFood();
 
+            // ✅ Sau khi xóa hết 3 item mới check tray — tránh race condition
+            foreach (var img in foods)
+            {
+                FoodSlot slot = img.GetComponentInParent<FoodSlot>();
+                slot?.OnCheckPrepareTray();
+            }
+
+            GameManager.Instance.OnMinusFood();
         });
     }
 
+
+    private List<(Image img, FoodSlot slot, TrayItem tray)> GetAllActiveFood()
+    {
+        var result = new List<(Image, FoodSlot, TrayItem)>();
+
+        foreach (var grill in GameManager.Instance.ListGrill)
+        {
+            if (!grill.gameObject.activeInHierarchy) continue;
+
+            foreach (var slot in grill.totalSlot)
+            {
+                if (slot.HasFood())
+                    result.Add((slot.ImgFood, slot, null));
+            }
+
+            // ✅ m_stackTray thay vì m_totalTrays
+            foreach (var tray in grill.totalTrays) // totalTrays là Stack
+            {
+                if (!tray.gameObject.activeInHierarchy) continue;
+                foreach (var img in tray.FoodList)
+                {
+                    if (img.gameObject.activeInHierarchy)
+                        result.Add((img, null, tray));
+                }
+            }
+        }
+        return result;
+    }
+
+   
     private void OnShuffle()
     {
         AudioManager.Instance.PlaySFX(SFXType.Shuffle);

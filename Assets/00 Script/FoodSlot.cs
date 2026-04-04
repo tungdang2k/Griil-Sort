@@ -23,7 +23,6 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
         m_imgFood.gameObject.SetActive(false);
     }
 
-    
 
     public void OnBeginDrag(PointerEventData eventData)
     {
