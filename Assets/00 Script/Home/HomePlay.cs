@@ -5,12 +5,19 @@ using UnityEngine.SceneManagement;
 public class HomePlay : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI m_levelText;
+    [SerializeField] private GameObject m_btnAdsRemove;
+
     private int m_level;
     [SerializeField] private int showAdEveryNLevels = 1;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if(PlayerPrefs.HasKey("LEVEL") == false)
+        if (AdsManager.Instance.IsAdsRemoved)
+        {
+            HideRemoveAdsButton();
+        }
+
+        if (PlayerPrefs.HasKey("LEVEL") == false)
         {
             PlayerPrefs.SetInt("LEVEL", 1);
         }
@@ -18,7 +25,10 @@ public class HomePlay : MonoBehaviour
         m_levelText.text = "Level " + m_level;
     }
 
-
+    public void HideRemoveAdsButton()
+    {
+        m_btnAdsRemove.SetActive(false);
+    }
 
     public void OnPlayGame()
     {
@@ -47,4 +57,7 @@ public class HomePlay : MonoBehaviour
         GameManager.Instance.StartLevel();
         LoadingSceneManager.Instance.SwichToScene(CONSTANTS.MAINSCENE);
     }
+
+   
+   
 }

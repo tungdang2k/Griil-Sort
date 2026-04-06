@@ -69,9 +69,9 @@ public class GameManager : Singleton<GameManager>
 
     void Update()
     {
-        Debug.Log(
-        $"[FRAME {Time.frameCount}] RealFoodInScene = {GetTotalRealFoodInScene()}"
-    );
+    //    Debug.Log(
+    //    $"[FRAME {Time.frameCount}] RealFoodInScene = {GetTotalRealFoodInScene()}"
+    //);
 
     }
 

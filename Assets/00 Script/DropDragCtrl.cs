@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using static UnityEditor.Progress;
+
 public class DropDragCtrl : MonoBehaviour
 {
     [SerializeField] private Image m_imgFoodDrag;

@@ -22,7 +22,11 @@ public class BannerAds : MonoBehaviour
     void OnBannerLoaded()
     {
         Debug.Log("Banner loaded");
-        Show();
+
+        if (!AdsManager.Instance.IsAdsRemoved)
+        {
+            Show();
+        }
     }
 
     void OnBannerError(string message)
@@ -45,6 +49,7 @@ public class BannerAds : MonoBehaviour
     public void Hide()
     {
         Advertisement.Banner.Hide();
+        Debug.Log("Banner hide");
     }
 
     void OnBannerClicked()

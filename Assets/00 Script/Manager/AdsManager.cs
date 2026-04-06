@@ -1,9 +1,9 @@
 ﻿using Crystal;
 using UnityEngine;
 using UnityEngine.Advertisements;
-using static UnityEditor.Progress;
 public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
 {
+    public bool IsAdsRemoved => PlayerPrefs.GetInt(CONSTANTS.ADS_REMOVED_KEY, 0) == 1;
     [SerializeField] string androidGameId = "6079219";
     [SerializeField] bool testMode = true;
 
@@ -11,6 +11,7 @@ public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
     public InterstitialAds interstitialAds;
     public RewardedAds rewardedAds;
 
+    public static System.Action OnAdsRemoved;
 
     protected override void Awake()
     {
@@ -18,9 +19,23 @@ public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
         Advertisement.Initialize(androidGameId, testMode, this);
     }
 
+
+    public void SetAdsRemoved()
+    {
+        PlayerPrefs.SetInt(CONSTANTS.ADS_REMOVED_KEY, 1);
+        PlayerPrefs.Save();
+        Debug.Log("Ads removed permanently!");
+        HideBanner();
+        OnAdsRemoved?.Invoke();
+    }
+
+
     public void OnInitializationComplete()
     {
-        Debug.Log("Ads Initialized");
+        if (IsAdsRemoved)
+        {
+            return;
+        }
 
         bannerAds.Init();
         interstitialAds.Init();
@@ -29,6 +44,11 @@ public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
 
     public void TryShowInterstitial(System.Action onComplete)
     {
+        if (IsAdsRemoved)
+        {
+            onComplete?.Invoke();
+            return;
+        }
         if (interstitialAds.CanShow())
         {
             interstitialAds.ShowWithCallback(onComplete);
@@ -46,11 +66,16 @@ public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
 
     // ===== API dùng trong game =====
 
-    public void ShowBanner() => bannerAds.Show();
+    public void ShowBanner() {
+        if (IsAdsRemoved) return;
+        bannerAds.Show();
+    } 
 
-    public void HideBanner() => bannerAds.Hide();
+    public void HideBanner()
+    {
+        bannerAds.Hide();
+    } 
 
- 
 
     public void ShowRewarded(System.Action onReward)
     {
