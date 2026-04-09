@@ -55,26 +55,22 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
         }
     }
 
-    private void OnStoreConnected() // ✅ Thêm hàm này
+    private void OnStoreConnected() 
     {
-        Debug.Log("Store connected!");
         m_storeController.FetchProducts(BuildProductDefinitions());
     }
 
     private void OnPurchaseFailed(FailedOrder failedOrder)
     {
-        // ✅ Sửa điều kiện null check
         if (failedOrder?.Info?.PurchasedProductInfo == null
             || failedOrder.Info.PurchasedProductInfo.Count == 0)
         {
-            Debug.Log("Purchase failed but no product info available");
             return;
         }
 
         var productId = failedOrder.Info.PurchasedProductInfo[0].productId;
         var reason = failedOrder.FailureReason;
         var message = failedOrder.Details;
-        Debug.Log($"Purchase failed - Product: {productId}, Reason: {reason}, Message: {message}");
     }
 
 
@@ -125,7 +121,6 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
     private void OnPurchasesFetched (Orders orders)
     {
         IsInitialized = true;
-        Debug.Log("✅ IAP fully initialized! IsInitialized = true");
     }
 
 
@@ -141,7 +136,6 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
 
     public void BuyProduct(IAPProductKey productKey)
     {
-        Debug.Log($"BuyProduct called. IsInitialized = {IsInitialized}");
         if (!IsInitialized)
         {
             Debug.Log("IAP not initialized yet.");
@@ -150,18 +144,15 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
 
         if (productKey == IAPProductKey.Coin1000)
         {
-            Debug.Log("Calling PurchaseProduct: " + coin1000);
             m_storeController.PurchaseProduct(coin1000);
         }
         else if (productKey == IAPProductKey.Coin5000)
         {
-            Debug.Log("Calling PurchaseProduct: " + coin5000);
             m_storeController.PurchaseProduct(coin5000);
 
         }
         else if (productKey == IAPProductKey.Coin10000)
         {
-            Debug.Log("Calling PurchaseProduct: " + coin10000);
             m_storeController.PurchaseProduct(coin10000);
         }
         else if (productKey == IAPProductKey.RemoveAds)
@@ -186,7 +177,6 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
 
     private void OnPurchaseConfirmed(Order order)
     {
-        Debug.Log("Purchase confirmed: " + order);
         if(order?.Info?.PurchasedProductInfo !=null && order.Info.PurchasedProductInfo.Count>  0)
         {
             string productId = order.Info.PurchasedProductInfo[0].productId;

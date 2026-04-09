@@ -21,7 +21,6 @@ public class BannerAds : MonoBehaviour
 
     void OnBannerLoaded()
     {
-        Debug.Log("Banner loaded");
 
         if (!AdsManager.Instance.IsAdsRemoved)
         {
@@ -59,7 +58,7 @@ public class BannerAds : MonoBehaviour
 
     void OnBannerShown()
     {
-        Debug.Log("Banner shown");
+        //Debug.Log("Banner shown");
     }
 
     void OnBannerHidden()

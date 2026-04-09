@@ -1,40 +1,30 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using System.Text.RegularExpressions;
 using UnityEditor;
-using System.IO;
+using UnityEngine;
 
-public class RemoveSuffixTool
+public class RenameRemoveCopy
 {
-    [MenuItem("Tools/Remove _0 Suffix")]
-    public static void RemoveSuffix()
+    [MenuItem("Tools/Rename/Remove Copy Format")]
+    public static void RemoveCopyFormat()
     {
-        string folderPath = "Assets/imagetest"; // đổi path nếu cần
+        var selected = Selection.objects;
 
-        string[] assetPaths = AssetDatabase.FindAssets("", new[] { folderPath });
-
-        foreach (string guid in assetPaths)
+        foreach (var obj in selected)
         {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            string fileName = Path.GetFileNameWithoutExtension(path);
+            string path = AssetDatabase.GetAssetPath(obj);
+            string oldName = obj.name;
 
-            // chỉ xử lý file kết thúc bằng _0
-            if (fileName.EndsWith("_0"))
+            // item3 copy_1 -> item3_1
+            string newName = Regex.Replace(oldName, @" copy_(\d+)", "_$1");
+
+            if (newName != oldName)
             {
-                string newName = fileName.Substring(0, fileName.Length - 2);
-                string newPath = Path.Combine(Path.GetDirectoryName(path), newName + Path.GetExtension(path));
-
-                // tránh lỗi trùng tên
-                if (File.Exists(newPath))
-                {
-                    Debug.LogWarning($"Skip (already exists): {newPath}");
-                    continue;
-                }
-
                 AssetDatabase.RenameAsset(path, newName);
-                Debug.Log($"Renamed: {fileName} → {newName}");
+                Debug.Log($"Renamed: {oldName} → {newName}");
             }
         }
 
         AssetDatabase.Refresh();
-        Debug.Log("Done removing _0 suffix!");
     }
 }

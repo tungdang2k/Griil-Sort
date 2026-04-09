@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using NUnit.Framework;
 using TMPro;
@@ -110,7 +112,6 @@ public class GrillStation : MonoBehaviour
 
     public void OnInitGrill(int totalTray, List<Sprite> listFood, bool isLocked)
     {
-        // ===== GUARD =====
         if (totalTray <= 0)
         {
             return;
@@ -120,6 +121,8 @@ public class GrillStation : MonoBehaviour
         {
             return;
         }
+
+        
         m_stackTray.Clear();
 
         int maxSlot = m_totalSlot.Count;
@@ -134,6 +137,21 @@ public class GrillStation : MonoBehaviour
             foodOnSlot = Mathf.Min(foodOnSlot, pool.Count);
 
             List<Sprite> slotFood = Utils.TakeAndRemoveRandom(pool, foodOnSlot);
+
+           
+            var nameGroups = slotFood.GroupBy(s => s.name).ToList();
+            foreach (var group in nameGroups)
+            {
+                if (group.Count() >= 3)
+                {
+                    // Bỏ 1 item trở lại pool
+                    Sprite toRemove = group.First();
+                    slotFood.Remove(toRemove);
+                    pool.Add(toRemove);
+                    break;
+                }
+            }
+
             foreach (var food in slotFood)
             {
                 FoodSlot slot = RandomSlot();
@@ -142,7 +160,7 @@ public class GrillStation : MonoBehaviour
                 listFood.Remove(food);
             }
         }
-       
+
 
         List<List<Sprite>> traysFood = new List<List<Sprite>>();
 
@@ -172,18 +190,19 @@ public class GrillStation : MonoBehaviour
             }
         }
 
-
         for (int i = 0; i < m_totalTrays.Count; i++)
         {
-            bool active = i < traysFood.Count;
+            bool active = i < traysFood.Count && traysFood[i].Count > 0;
             m_totalTrays[i].gameObject.SetActive(active);
 
-            if (active)
+            if (active) 
             {
                 m_totalTrays[i].OnSetFood(traysFood[i]);
                 m_stackTray.Push(m_totalTrays[i]);
             }
         }
+       
+
     }
 
    
@@ -243,6 +262,7 @@ public class GrillStation : MonoBehaviour
 
     private void OnPrepareTray()
     {
+
         if (m_stackTray.Count > 0)
         {
             TrayItem tray = m_stackTray.Pop();
@@ -359,22 +379,6 @@ public class GrillStation : MonoBehaviour
             }
         }
 
-        //for (int j = 0; j < m_totalTrays.Count; j++)
-        //{
-
-        //    TrayItem tray = m_totalTrays[j];
-        //    if (tray.gameObject.activeInHierarchy)
-        //    {
-        //        for (int k = 0; k < tray.FoodList.Count; k++)
-        //        {
-        //            if (tray.FoodList[k].gameObject.activeInHierarchy)
-        //            {
-        //                list.Add(tray.FoodList[k]);
-        //            }
-        //        }
-        //    }
-
-        //}
 
         foreach (var tray in m_stackTray)
         {
