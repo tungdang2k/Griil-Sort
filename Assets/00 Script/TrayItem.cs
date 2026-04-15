@@ -74,6 +74,7 @@ public class TrayItem : MonoBehaviour
                 rt.offsetMax = Vector2.zero;
 
                 slot.preserveAspect = true;
+                Debug.Log($"Tray slots={m_FoodList.Count}, items={items.Count}");
             }
         }
 

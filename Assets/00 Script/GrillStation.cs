@@ -159,33 +159,7 @@ public class GrillStation : MonoBehaviour
             pool.AddRange(notPlaced);
         }
 
-        List<List<Sprite>> traysFood = new List<List<Sprite>>();
-
-        // Nếu chỉ có 1 tray → cho hết food vào nó
-        if (totalTray == 1)
-        {
-            traysFood.Add(new List<Sprite>(listFood));
-            listFood.Clear();
-        }
-        else
-        {
-            // Tạo tray rỗng
-            for (int i = 0; i < totalTray - 1; i++)
-                traysFood.Add(new List<Sprite>());
-
-            // Chia đều food vào các tray (tối đa 4 / tray)
-            int trayIndex = 0;
-            while (listFood.Count > 0)
-            {
-                if (traysFood[trayIndex].Count < 4)
-                {
-                    traysFood[trayIndex].Add(listFood[0]);
-                    listFood.RemoveAt(0);
-                }
-
-                trayIndex = (trayIndex + 1) % traysFood.Count;
-            }
-        }
+        List<List<Sprite>> traysFood = BuildBalancedTrays(pool, totalTray);
 
         for (int i = 0; i < m_totalTrays.Count; i++)
         {
@@ -200,7 +174,62 @@ public class GrillStation : MonoBehaviour
         }
     }
 
-   
+    private List<List<Sprite>> BuildBalancedTrays(List<Sprite> pool, int totalTray)
+    {
+        List<List<Sprite>> result = new List<List<Sprite>>();
+
+        if (pool == null || pool.Count == 0 || totalTray <= 0)
+            return result;
+
+        // clone để không phá data gốc
+        List<Sprite> working = new List<Sprite>(pool);
+
+        // shuffle cho random
+        working = working.OrderBy(x => Random.value).ToList();
+
+        int remainingItems = working.Count;
+        int remainingTrays = totalTray;
+
+        int index = 0;
+
+        for (int i = 0; i < totalTray; i++)
+        {
+            if (remainingItems <= 0)
+                break;
+
+            List<Sprite> tray = new List<Sprite>();
+
+            // 🔥 logic chọn 2 hoặc 3 item
+            int take = 2;
+
+            // nếu đủ item thì có thể lấy 3
+            if (remainingItems >= 3 && remainingTrays > 1)
+            {
+                take = Random.Range(2, 4); // 2 hoặc 3
+            }
+            else
+            {
+                // nếu gần hết thì lấy hết luôn
+                take = Mathf.Min(remainingItems, 3);
+            }
+
+            // đảm bảo không vượt quá số item còn lại
+            take = Mathf.Min(take, remainingItems);
+
+            for (int j = 0; j < take; j++)
+            {
+                tray.Add(working[index]);
+                index++;
+            }
+
+            result.Add(tray);
+
+            remainingItems -= take;
+            remainingTrays--;
+        }
+
+        return result;
+    }
     private FoodSlot RandomSlot()
     {
         if (m_totalSlot == null || m_totalSlot.Count == 0)
