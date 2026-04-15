@@ -69,7 +69,7 @@ public class GameManager : Singleton<GameManager>
 
     void Update()
     {
-        //Debug.Log($"[FRAME {Time.frameCount}] RealFoodInScene = {GetTotalRealFoodInScene()}");
+        Debug.Log($"[FRAME {Time.frameCount}] RealFoodInScene = {GetTotalRealFoodInScene()}");
 
     }
 
@@ -100,7 +100,10 @@ public class GameManager : Singleton<GameManager>
         //m_totalGrill = CurrentLevelData.boardData.listTrayData.Count;
 
         m_totalGrill = CurrentLevelData.boardData.listTrayData
-       .Count(t => t.id != "bonus_tray" );
+       .Count(t =>
+        t != null &&
+        t.id != "bonus_tray" &&
+        (t.id == "normal_tray" || t.id == "target_tray"));
     }
     private void CompleteLevel()
     {
@@ -215,7 +218,20 @@ public class GameManager : Singleton<GameManager>
             if (i >= allTrayData.Count) { m_listGrill[i].gameObject.SetActive(false); continue; }
 
             TrayData tData = allTrayData[i];
+            if (tData.id == "target_tray")
+            {
 
+                m_listGrill[i].gameObject.SetActive(true);
+                // ✅ Lấy food đã được gom theo locality
+                List<Sprite> lockedFood = normalIndex < foodPerGrillList.Count
+                    ? foodPerGrillList[normalIndex] : new List<Sprite>();
+
+                m_listGrill[i].OnInitGrill(trayPerGrill[normalIndex], lockedFood, isLocked: true);
+
+                m_listGrill[i].SetAsLocked();
+                normalIndex++;
+                continue;
+            }
             if (tData == null || string.IsNullOrEmpty(tData.id))
             {
                 m_listGrill[i].SetNullGrill(); continue;
@@ -228,20 +244,7 @@ public class GameManager : Singleton<GameManager>
                 continue;
             }
 
-            if (tData.id == "target_tray")
-            {
-
-                m_listGrill[i].gameObject.SetActive(true);
-                // ✅ Lấy food đã được gom theo locality
-                List<Sprite> lockedFood = normalIndex < foodPerGrillList.Count
-                    ? foodPerGrillList[normalIndex] : new List<Sprite>();
-               
-                m_listGrill[i].OnInitGrill(trayPerGrill[normalIndex], lockedFood, isLocked: true);
-               
-                m_listGrill[i].SetAsLocked();
-                normalIndex++;
-                continue;
-            }
+            
 
             m_listGrill[i].gameObject.SetActive(true);
             m_listGrill[i].SetAsNormal();
@@ -249,9 +252,7 @@ public class GameManager : Singleton<GameManager>
                 ? foodPerGrillList[normalIndex] : new List<Sprite>();
             int currentGrill = i; // giữ lại index
 
-            Debug.Log($"[STEP 3 - BEFORE] Grill {currentGrill} Food Count = {listFood.Count}");
             m_listGrill[i].OnInitGrill(trayPerGrill[normalIndex], listFood, isLocked: false);
-            Debug.Log($"[STEP 3 - AFTER] Grill {currentGrill} Food Count = {listFood.Count}");
             normalIndex++;
         }
 

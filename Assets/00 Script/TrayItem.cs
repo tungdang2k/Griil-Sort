@@ -35,53 +35,28 @@ public class TrayItem : MonoBehaviour
     public  void OnSetFood(List<Sprite> items)
     {
 
-        //if (items.Count <= m_FoodList.Count)
-        //{
-        //    for (int i = 0; i < items.Count; i++)
-        //    {
-        //        Image slot = RandomSlot();
-        //        if (slot != null)
-        //        {
-        //            slot.sprite = items[i];
-        //            slot.gameObject.SetActive(true);
-
-        //            RectTransform rt = slot.rectTransform;
-
-        //            rt.anchorMin = Vector2.zero;
-        //            rt.anchorMax = Vector2.one;
-        //            rt.offsetMin = Vector2.zero;
-        //            rt.offsetMax = Vector2.zero;
-
-        //            slot.preserveAspect = true;
-        //        }
-        //    }
-        //}
-
-        int count = Mathf.Min(items.Count, m_FoodList.Count);
-
-        for (int i = 0; i < count; i++)
+        if (items.Count <= m_FoodList.Count)
         {
-            Image slot = RandomSlot();
-            if (slot != null)
+            for (int i = 0; i < items.Count; i++)
             {
-                slot.sprite = items[i];
-                slot.gameObject.SetActive(true);
+                Image slot = RandomSlot();
+                if (slot != null)
+                {
+                    slot.sprite = items[i];
+                    slot.gameObject.SetActive(true);
 
-                RectTransform rt = slot.rectTransform;
-                rt.anchorMin = Vector2.zero;
-                rt.anchorMax = Vector2.one;
-                rt.offsetMin = Vector2.zero;
-                rt.offsetMax = Vector2.zero;
+                    RectTransform rt = slot.rectTransform;
 
-                slot.preserveAspect = true;
-                Debug.Log($"Tray slots={m_FoodList.Count}, items={items.Count}");
+                    rt.anchorMin = Vector2.zero;
+                    rt.anchorMax = Vector2.one;
+                    rt.offsetMin = Vector2.zero;
+                    rt.offsetMax = Vector2.zero;
+
+                    slot.preserveAspect = true;
+                }
             }
         }
 
-        if (items.Count > m_FoodList.Count)
-        {
-            Debug.LogError($"[BUG] Tray overflow! Items={items.Count}, Slots={m_FoodList.Count}");
-        }
     }
 
 

@@ -7,7 +7,7 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
     IDragHandler,
     IEndDragHandler
 {
-    [SerializeField] private float m_padding = 20f;
+    private float m_padding = 16f;
     //[SerializeField] private float m_slotScale = 0.65f;
     private DropDragCtrl m_dropDragCtrl;
 

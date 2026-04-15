@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public class GrillStation : MonoBehaviour
 {
     [SerializeField] private Transform m_trayContainer, m_slotContainer;
-    [SerializeField] private GameObject m_normalVisual;  // sprite bếp bình thường
+    [SerializeField] private GameObject m_normalVisual;  
     [SerializeField] private GameObject m_lockedVisual;
     [SerializeField] private GameObject m_TraysVisual;
     [SerializeField] private TextMeshProUGUI m_lockCountText;
@@ -40,7 +40,11 @@ public class GrillStation : MonoBehaviour
     {
         m_lockedVisual.SetActive(false);  
         m_normalVisual.SetActive(false);
-        m_TraysVisual.SetActive(false);
+        foreach (Transform child in m_TraysVisual.transform)
+        {
+            child.gameObject.SetActive(false);
+        }
+        //m_TraysVisual.SetActive(false);
     }
 
     public void SetBonusGrill()
