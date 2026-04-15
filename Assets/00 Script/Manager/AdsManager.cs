@@ -1,9 +1,7 @@
-﻿using Crystal;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Advertisements;
 public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
 {
-    public bool IsAdsRemoved => PlayerPrefs.GetInt(CONSTANTS.ADS_REMOVED_KEY, 0) == 1;
     [SerializeField] string androidGameId = "6079219";
     [SerializeField] bool testMode = true;
 
@@ -19,12 +17,12 @@ public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
         Advertisement.Initialize(androidGameId, testMode, this);
     }
 
+    public bool IsAdsRemoved => PlayerPrefs.GetInt(CONSTANTS.ADS_REMOVED_KEY, 0) == 1;
 
     public void SetAdsRemoved()
     {
         PlayerPrefs.SetInt(CONSTANTS.ADS_REMOVED_KEY, 1);
         PlayerPrefs.Save();
-        Debug.Log("Ads removed permanently!");
         HideBanner();
         OnAdsRemoved?.Invoke();
     }

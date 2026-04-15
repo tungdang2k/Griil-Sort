@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Threading.Tasks;
 using Unity.Services.Core;
 using Unity.Services.Core.Environments;
@@ -14,12 +13,24 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
     public string coin1000 = "1000_coin";
     public string coin5000 = "5000_coin";
     public string coin10000 = "10000_coin";
+    public string coin25000 = "25000_coin";
+    public string coin50000 = "50000_coin";
+    public string coin100000 = "100000_coin";
+
+    public string legendarybundle = "legendary_bundle";
+    public string bigbundle = "big_bundle";
+    public string startedbundle = "started_bundle";
+    public string smallbundle = "small_bundle";
+
     public string removeAds = "remove_ads";
+    private HashSet<string> m_processedOrderIds = new HashSet<string>();
+
+
     public static bool IsInitialized { get; private set; } = false;
 
     private static StoreController m_storeController;
-
-   protected override async void Awake()
+    private bool m_isProcessingPurchase = false;
+    protected override async void Awake()
     {
         if (m_shopPage == null)
             m_shopPage = FindFirstObjectByType<ShopPage>();
@@ -27,6 +38,13 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
         await InitIAP();
 
     }
+
+    private void Start()
+    {
+        
+    }
+
+   
 
     private async Task InitIAP()
     {
@@ -73,21 +91,24 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
         var message = failedOrder.Details;
     }
 
-
-
-
-    
-
      private List<ProductDefinition> BuildProductDefinitions()
     {
-        var intialProductToFetch = new List<ProductDefinition>();
+        return new List<ProductDefinition>
+    {
+        new ProductDefinition(coin1000,       ProductType.Consumable),
+        new ProductDefinition(coin5000,       ProductType.Consumable),
+        new ProductDefinition(coin10000,      ProductType.Consumable),
+        new ProductDefinition(coin25000,      ProductType.Consumable),
+        new ProductDefinition(coin50000,      ProductType.Consumable),
+        new ProductDefinition(coin100000,     ProductType.Consumable),
+        
+        new ProductDefinition(legendarybundle, ProductType.Consumable),
+        new ProductDefinition(bigbundle,       ProductType.Consumable),
+        new ProductDefinition(startedbundle,   ProductType.Consumable),
+        new ProductDefinition(smallbundle,     ProductType.Consumable),
 
-        intialProductToFetch.Add(new ProductDefinition(coin1000, ProductType.Consumable));
-        intialProductToFetch.Add(new ProductDefinition(coin5000, ProductType.Consumable));
-        intialProductToFetch.Add(new ProductDefinition(coin10000, ProductType.Consumable));
-        intialProductToFetch.Add(new ProductDefinition(removeAds, ProductType.NonConsumable));
-
-        return intialProductToFetch;
+        new ProductDefinition(removeAds,      ProductType.NonConsumable),
+    };
     }
 
 
@@ -121,6 +142,33 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
     private void OnPurchasesFetched (Orders orders)
     {
         IsInitialized = true;
+
+        if (orders?.ConfirmedOrders == null || orders.ConfirmedOrders.Count == 0)
+        {
+            
+            return;
+        }
+
+        foreach (var order in orders.ConfirmedOrders)
+        {
+            if (order?.Info?.PurchasedProductInfo == null) continue;
+
+            foreach (var productInfo in order.Info.PurchasedProductInfo)
+            {
+                string productId = productInfo.productId;
+
+                if (productId == removeAds ||
+                    productId == startedbundle ||
+                    productId == bigbundle ||
+                    productId == legendarybundle ||
+                    productId == smallbundle)
+                {
+                    AdsManager.Instance.SetAdsRemoved();
+                    m_homePlay?.HideRemoveAdsButton();
+                }
+            }
+        }
+
     }
 
 
@@ -141,26 +189,22 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
             Debug.Log("IAP not initialized yet.");
             return;
         }
+        switch (productKey)
+        {
+            case IAPProductKey.Coin1000: m_storeController.PurchaseProduct(coin1000); break;
+            case IAPProductKey.Coin5000: m_storeController.PurchaseProduct(coin5000); break;
+            case IAPProductKey.Coin10000: m_storeController.PurchaseProduct(coin10000); break;
+            case IAPProductKey.Coin25000: m_storeController.PurchaseProduct(coin25000); break;
+            case IAPProductKey.Coin50000: m_storeController.PurchaseProduct(coin50000); break;
+            case IAPProductKey.Coin100000: m_storeController.PurchaseProduct(coin100000); break;
+            case IAPProductKey.RemoveAds: m_storeController.PurchaseProduct(removeAds); break;
+            case IAPProductKey.Startedbundle: m_storeController.PurchaseProduct(startedbundle); break;
+            case IAPProductKey.Bigbundle: m_storeController.PurchaseProduct(bigbundle); break;
+            case IAPProductKey.Legendarybundle: m_storeController.PurchaseProduct(legendarybundle); break;
+            case IAPProductKey.Smallbundle: m_storeController.PurchaseProduct(smallbundle); break;
+        }
 
-        if (productKey == IAPProductKey.Coin1000)
-        {
-            m_storeController.PurchaseProduct(coin1000);
-        }
-        else if (productKey == IAPProductKey.Coin5000)
-        {
-            m_storeController.PurchaseProduct(coin5000);
-
-        }
-        else if (productKey == IAPProductKey.Coin10000)
-        {
-            m_storeController.PurchaseProduct(coin10000);
-        }
-        else if (productKey == IAPProductKey.RemoveAds)
-        {
-            m_storeController.PurchaseProduct(removeAds);
-
-        }
-     }
+    }
 
     private void OnPurchasePending(PendingOrder order)
     {
@@ -177,32 +221,85 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
 
     private void OnPurchaseConfirmed(Order order)
     {
-        if(order?.Info?.PurchasedProductInfo !=null && order.Info.PurchasedProductInfo.Count>  0)
+       
+        if (m_isProcessingPurchase)
         {
-            string productId = order.Info.PurchasedProductInfo[0].productId;
+            Debug.LogWarning("[IAP] Duplicate OnPurchaseConfirmed blocked!");
+            return;
+        }
+        m_isProcessingPurchase = true;
 
-            if (productId == coin1000)
-            {
-                GoldManager.Instance.AddGold(1000);
-            }
-            else if (productId == coin5000)
-            {
-                GoldManager.Instance.AddGold(5000);
+        if (order?.Info?.PurchasedProductInfo == null ||
+            order.Info.PurchasedProductInfo.Count == 0)
+        {
+            m_isProcessingPurchase = false;
+            return;
+        }
 
-            }
-            else if (productId == coin10000)
-            {
-                GoldManager.Instance.AddGold(10000);
-            }
-            else if (productId == removeAds)
-            {
-                AdsManager.Instance.SetAdsRemoved();
-                m_popupNoAds?.HidePopup();
-                m_homePlay?.HideRemoveAdsButton();
+        string productId = order.Info.PurchasedProductInfo[0].productId;
 
-            }
-         }
+        if (productId == coin1000) GoldManager.Instance.AddGold(1000);
+        else if (productId == coin5000) GoldManager.Instance.AddGold(5000);
+        else if (productId == coin10000) GoldManager.Instance.AddGold(10000);
+        else if (productId == coin25000) GoldManager.Instance.AddGold(25000);
+        else if (productId == coin50000) GoldManager.Instance.AddGold(50000);
+        else if (productId == coin100000) GoldManager.Instance.AddGold(100000);
+        else if (productId == removeAds)
+        {
+            AdsManager.Instance.SetAdsRemoved();
+            m_popupNoAds?.HidePopup();
+            m_homePlay?.HideRemoveAdsButton();
+        }
+        else if (productId == startedbundle)
+        {
+            GoldManager.Instance.AddGold(2500);
+            AddPowerupToPlayer(2);
+            GrantRemoveAdsFromBundle(); // ✅ Tự động grant remove_ads
+        }
+        else if (productId == bigbundle)
+        {
+            GoldManager.Instance.AddGold(10000);
+            AddPowerupToPlayer(3);
+            GrantRemoveAdsFromBundle();
+        }
+        else if (productId == legendarybundle)
+        {
+            GoldManager.Instance.AddGold(25000);
+            AddPowerupToPlayer(5);
+            GrantRemoveAdsFromBundle();
+        }
+        else if (productId == smallbundle)
+        {
+            GoldManager.Instance.AddGold(5000);
+            AddPowerupToPlayer(2);
+            GrantRemoveAdsFromBundle();
+        }
 
+
+        m_isProcessingPurchase = false;
     }
+
+    private void GrantRemoveAdsFromBundle()
+    {
+        // Nếu chưa remove ads thì purchase remove_ads product
+        if (!AdsManager.Instance.IsAdsRemoved)
+        {
+            m_storeController.PurchaseProduct(removeAds);
+            
+        }
+        else
+        {
+            // Đã remove ads rồi, chỉ cần update UI
+            m_homePlay?.HideRemoveAdsButton();
+        }
+    }
+
+    private void AddPowerupToPlayer( int num)
+    {
+        PowerUpUsesManager.AddUses(CONSTANTS.MAGNET, num);
+        PowerUpUsesManager.AddUses(CONSTANTS.SHUFFLE, num);
+        PowerUpUsesManager.AddUses(CONSTANTS.ADDTIME, num);
+    }
+
 
 }

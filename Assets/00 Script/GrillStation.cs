@@ -15,8 +15,6 @@ public class GrillStation : MonoBehaviour
     [SerializeField] private GameObject m_TraysVisual;
     [SerializeField] private TextMeshProUGUI m_lockCountText;
 
-
-
     private List<TrayItem> m_totalTrays = new List<TrayItem>();
     private List<FoodSlot> m_totalSlot = new List<FoodSlot>();
     private Stack<TrayItem> m_stackTray = new Stack<TrayItem>();
@@ -29,6 +27,7 @@ public class GrillStation : MonoBehaviour
     {
         m_totalSlot = Utils.GetListInChild<FoodSlot>(m_slotContainer);
         m_totalTrays = Utils.GetListInChild<TrayItem>(m_trayContainer);
+        
     }
 
     public void SetAsNormal()
@@ -104,7 +103,7 @@ public class GrillStation : MonoBehaviour
     {
         IsLocked = false;
 
-        m_lockedVisual.SetActive(false); // hoặc play DOTween animation
+        m_lockedVisual.SetActive(false); 
         m_normalVisual.SetActive(true);
 
         OnPrepareTray();
@@ -112,39 +111,29 @@ public class GrillStation : MonoBehaviour
 
     public void OnInitGrill(int totalTray, List<Sprite> listFood, bool isLocked)
     {
-        if (totalTray <= 0)
-        {
+        if (totalTray <= 0 || listFood == null || listFood.Count == 0)
             return;
-        }
 
-        if (listFood == null || listFood.Count == 0)
-        {
-            return;
-        }
-
-        
         m_stackTray.Clear();
 
         int maxSlot = m_totalSlot.Count;
-       
 
-        // clone để không phá list gốc
+        // clone để xử lý
         List<Sprite> pool = new List<Sprite>(listFood);
 
+        // ===== SLOT =====
         if (!isLocked)
         {
-            int foodOnSlot = Random.Range(1, maxSlot + 1);
-            foodOnSlot = Mathf.Min(foodOnSlot, pool.Count);
+            int emptySlot = m_totalSlot.Count(s => !s.HasFood());
+            int foodOnSlot = Random.Range(1, Mathf.Min(emptySlot + 1, pool.Count + 1));
 
             List<Sprite> slotFood = Utils.TakeAndRemoveRandom(pool, foodOnSlot);
-
-           
+            // tránh auto match 3
             var nameGroups = slotFood.GroupBy(s => s.name).ToList();
             foreach (var group in nameGroups)
             {
                 if (group.Count() >= 3)
                 {
-                    // Bỏ 1 item trở lại pool
                     Sprite toRemove = group.First();
                     slotFood.Remove(toRemove);
                     pool.Add(toRemove);
@@ -152,15 +141,23 @@ public class GrillStation : MonoBehaviour
                 }
             }
 
+            List<Sprite> notPlaced = new List<Sprite>();
+
             foreach (var food in slotFood)
             {
                 FoodSlot slot = RandomSlot();
-                if (slot == null) break;
-                slot.OnSetSlot(food);
-                listFood.Remove(food);
-            }
-        }
+                if (slot == null)
+                {
+                    notPlaced.Add(food); // giữ lại nếu không đặt được
+                    continue;
+                }
 
+                slot.OnSetSlot(food);
+            }
+
+            // trả lại pool
+            pool.AddRange(notPlaced);
+        }
 
         List<List<Sprite>> traysFood = new List<List<Sprite>>();
 
@@ -195,18 +192,15 @@ public class GrillStation : MonoBehaviour
             bool active = i < traysFood.Count && traysFood[i].Count > 0;
             m_totalTrays[i].gameObject.SetActive(active);
 
-            if (active) 
-            {
+            if (active)
+            {   
                 m_totalTrays[i].OnSetFood(traysFood[i]);
                 m_stackTray.Push(m_totalTrays[i]);
             }
         }
-       
-
     }
 
    
-
     private FoodSlot RandomSlot()
     {
         if (m_totalSlot == null || m_totalSlot.Count == 0)
@@ -263,21 +257,48 @@ public class GrillStation : MonoBehaviour
     private void OnPrepareTray()
     {
 
+        //if (m_stackTray.Count > 0)
+        //{
+        //    TrayItem tray = m_stackTray.Pop();
+        //    for (int i = 0; i < tray.FoodList.Count; i++)
+        //    {
+        //        Image img = tray.FoodList[i];
+        //        if (img.gameObject.activeSelf)
+        //        {
+        //            m_totalSlot[i].OnPrepareItem(img);
+        //            img.gameObject.SetActive(false);
+        //        }
+        //    }
+        //    tray.gameObject.SetActive(false);
+        //    CleanEmptyTraysInStack();
+        //}
+
         if (m_stackTray.Count > 0)
         {
             TrayItem tray = m_stackTray.Pop();
-            for (int i = 0; i < tray.FoodList.Count; i++)
+
+            foreach (var img in tray.FoodList)
             {
-                Image img = tray.FoodList[i];
-                if (img.gameObject.activeSelf)
+                if (!img.gameObject.activeSelf) continue;
+
+                FoodSlot slot = GetSlotNull(); // 🔥 lấy slot trống
+
+                if (slot == null)
                 {
-                    m_totalSlot[i].OnPrepareItem(img);
-                    img.gameObject.SetActive(false);
+                    Debug.LogError("[BUG] Không đủ slot chứa tray!");
+                    continue;
                 }
+
+                slot.OnPrepareItem(img);
+                img.gameObject.SetActive(false);
+                
             }
+
             tray.gameObject.SetActive(false);
             CleanEmptyTraysInStack();
+           
         }
+
     }
 
     private void CleanEmptyTraysInStack()

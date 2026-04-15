@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
 using UIImage = UnityEngine.UI.Image;
 
 public class GameManager : Singleton<GameManager>
@@ -65,13 +64,12 @@ public class GameManager : Singleton<GameManager>
 
     private void Start()
     {
+       
     }
 
     void Update()
     {
-    //    Debug.Log(
-    //    $"[FRAME {Time.frameCount}] RealFoodInScene = {GetTotalRealFoodInScene()}"
-    //);
+        Debug.Log($"[FRAME {Time.frameCount}] RealFoodInScene = {GetTotalRealFoodInScene()}");
 
     }
 
@@ -89,6 +87,7 @@ public class GameManager : Singleton<GameManager>
         m_allFood = 0;
         LoadLevel(m_currentLevel);
         OnInitLevel();
+
     }
     private void LoadLevel(int level)
     {
@@ -172,6 +171,7 @@ public class GameManager : Singleton<GameManager>
             foodGroups.Add(new List<Sprite> { s, s, s });
         }
 
+
         // Shuffle thứ tự GROUP (không shuffle từng item)
         foodGroups = foodGroups.OrderBy(_ => UnityEngine.Random.value).ToList();
 
@@ -201,6 +201,7 @@ public class GameManager : Singleton<GameManager>
             }
 
             foodPerGrillList.Add(grillFood);
+           
         }
 
         // Tính tray per grill
@@ -229,6 +230,7 @@ public class GameManager : Singleton<GameManager>
 
             if (tData.id == "target_tray")
             {
+
                 m_listGrill[i].gameObject.SetActive(true);
                 // ✅ Lấy food đã được gom theo locality
                 List<Sprite> lockedFood = normalIndex < foodPerGrillList.Count
@@ -243,11 +245,16 @@ public class GameManager : Singleton<GameManager>
             m_listGrill[i].SetAsNormal();
             List<Sprite> listFood = normalIndex < foodPerGrillList.Count
                 ? foodPerGrillList[normalIndex] : new List<Sprite>();
+            int currentGrill = i; // giữ lại index
+
+            //Debug.Log($"[STEP 3 - BEFORE] Grill {currentGrill} Food Count = {listFood.Count}");
             m_listGrill[i].OnInitGrill(trayPerGrill[normalIndex], listFood, isLocked: false);
+            //Debug.Log($"[STEP 3 - AFTER] Grill {currentGrill} Food Count = {listFood.Count}");
             normalIndex++;
         }
 
-       
+
+        
     }
 
 
@@ -286,7 +293,7 @@ public class GameManager : Singleton<GameManager>
 
     }
 
-    public void SilentMergeLeftovers()
+    private void SilentMergeLeftovers()
     {
         var groups = new Dictionary<string, List<(UIImage img, FoodSlot slot, TrayItem tray)>>();
 
@@ -320,6 +327,7 @@ public class GameManager : Singleton<GameManager>
         bool anyRemoved = false;
         foreach (var kvp in groups)
         {
+
             if (kvp.Value.Count >= 3) continue;
 
             foreach (var (img, slot, tray) in kvp.Value)
@@ -340,7 +348,9 @@ public class GameManager : Singleton<GameManager>
             foreach (var (img, slot, tray) in kvp.Value)
                 slot?.OnCheckPrepareTray();
 
-            m_allFood -= 3;
+            //m_allFood -= kvp.Value.Count; ///
+            m_allFood -= 3; ///
+
             m_mergeCount++;
             anyRemoved = true;
         }
@@ -372,6 +382,7 @@ public class GameManager : Singleton<GameManager>
             AudioManager.Instance.PlaySFX(SFXType.Win);
             ShowWinPanel();
         }
+       
     }
 
     private void UpdateAllLockedGrillText()

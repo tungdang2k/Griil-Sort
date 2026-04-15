@@ -8,7 +8,7 @@ public class HomePlay : MonoBehaviour
     [SerializeField] private GameObject m_btnAdsRemove;
 
     private int m_level;
-    [SerializeField] private int showAdEveryNLevels = 1;
+    [SerializeField] private int showAdEveryNLevels = 2;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -27,7 +27,8 @@ public class HomePlay : MonoBehaviour
 
     public void HideRemoveAdsButton()
     {
-        m_btnAdsRemove.SetActive(false);
+        if (m_btnAdsRemove != null)
+            m_btnAdsRemove.SetActive(false);
     }
 
     public void OnPlayGame()

@@ -1,3 +1,4 @@
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,25 +15,75 @@ public class TrayItem : MonoBehaviour
         {
             m_FoodList[i].gameObject.SetActive(false);
         }
+
+
+        HorizontalLayoutGroup hlg = GetComponent<HorizontalLayoutGroup>();
+        if (hlg != null)
+        {
+            hlg.childControlWidth = true;
+            hlg.childControlHeight = true;
+            hlg.childForceExpandWidth = true;
+            hlg.childForceExpandHeight = true;
+        }
+
+        for (int i = 0; i < m_FoodList.Count; i++)
+            m_FoodList[i].gameObject.SetActive(false);
     }
 
+ 
 
-    public void OnSetFood(List<Sprite> items)
+    public  void OnSetFood(List<Sprite> items)
     {
-        if (items.Count <= m_FoodList.Count)
+
+        //if (items.Count <= m_FoodList.Count)
+        //{
+        //    for (int i = 0; i < items.Count; i++)
+        //    {
+        //        Image slot = RandomSlot();
+        //        if (slot != null)
+        //        {
+        //            slot.sprite = items[i];
+        //            slot.gameObject.SetActive(true);
+
+        //            RectTransform rt = slot.rectTransform;
+
+        //            rt.anchorMin = Vector2.zero;
+        //            rt.anchorMax = Vector2.one;
+        //            rt.offsetMin = Vector2.zero;
+        //            rt.offsetMax = Vector2.zero;
+
+        //            slot.preserveAspect = true;
+        //        }
+        //    }
+        //}
+
+        int count = Mathf.Min(items.Count, m_FoodList.Count);
+
+        for (int i = 0; i < count; i++)
         {
-            for (int i = 0; i < items.Count; i++)
+            Image slot = RandomSlot();
+            if (slot != null)
             {
-                Image slot = RandomSlot();
-                if (slot != null)
-                {
-                    slot.sprite = items[i];
-                    slot.gameObject.SetActive(true);
-                    slot.SetNativeSize();
-                }
+                slot.sprite = items[i];
+                slot.gameObject.SetActive(true);
+
+                RectTransform rt = slot.rectTransform;
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+
+                slot.preserveAspect = true;
             }
         }
+
+        if (items.Count > m_FoodList.Count)
+        {
+            Debug.LogError($"[BUG] Tray overflow! Items={items.Count}, Slots={m_FoodList.Count}");
+        }
     }
+
+
 
     private Image RandomSlot()
     {

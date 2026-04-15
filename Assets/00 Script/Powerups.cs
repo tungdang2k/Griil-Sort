@@ -21,7 +21,7 @@ public class Powerups : MonoBehaviour
     [SerializeField] private Image m_magnetPlusIcon;
     [SerializeField] private Image m_shufflePlusIcon;
     [SerializeField] private Image m_timePlusIcon;
-
+    [SerializeField] private float m_magnetDummySize = 160f;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
@@ -148,8 +148,18 @@ public class Powerups : MonoBehaviour
             Image capturedDummy = imgDummy;
 
             imgDummy.sprite = imgFood.sprite;
-            imgDummy.SetNativeSize();
+
+            var rt = imgDummy.rectTransform;
+
+            // size cố định
+            rt.sizeDelta = new Vector2(m_magnetDummySize, m_magnetDummySize);
+            // reset transform
+            rt.localScale = Vector3.one;
+
+            imgDummy.preserveAspect = true;
+
             imgDummy.transform.position = imgFood.transform.position;
+
             imgDummy.transform.rotation = Quaternion.identity;
             imgDummy.color = Color.white;
             imgDummy.gameObject.SetActive(true);
@@ -284,7 +294,7 @@ public class Powerups : MonoBehaviour
         foreach (var img in result)
         {
             img.transform
-                .DOScale(1f, fallTime)
+                .DOScale(1f, fallTime) 
                 .SetEase(Ease.OutBack);
         }
     }
@@ -333,28 +343,10 @@ public class Powerups : MonoBehaviour
         for (int i = 0; i < result.Count; i++)
         {
             result[i].sprite = finalOrder[i];
-            result[i].SetNativeSize();
+            //result[i].SetNativeSize();
         }
     }
 
-    private void OnAddMoreGrill()
-    {
-        AudioManager.Instance.PlaySFX(SFXType.Drag);
-        foreach (var grill in GameManager.Instance.ListGrill)
-        {
-            if (!grill.gameObject.activeInHierarchy)
-            {
-                grill.gameObject.SetActive(true);
-
-                Transform t = grill.transform;
-                t.localScale = Vector3.zero;
-
-                t.DOScale(1f, 0.35f)
-                 .SetEase(Ease.OutBack);
-                break;
-            }
-        }
-    }
 
     public void OnAddTime()
     {

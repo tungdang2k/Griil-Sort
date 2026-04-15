@@ -3,28 +3,35 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-public class RenameRemoveCopy
+public class RenameItemsTool
 {
-    [MenuItem("Tools/Rename/Remove Copy Format")]
-    public static void RemoveCopyFormat()
+    [MenuItem("Tools/Rename Items")]
+    public static void RenameItems()
     {
-        var selected = Selection.objects;
+        string folderPath = "Assets/Resources/items"; // 👉 sửa path nếu cần
 
-        foreach (var obj in selected)
+        string[] files = Directory.GetFiles(folderPath);
+
+        int index = 1;
+            
+        foreach (string file in files)
         {
-            string path = AssetDatabase.GetAssetPath(obj);
-            string oldName = obj.name;
+            // Bỏ qua meta file
+            if (file.EndsWith(".meta")) continue;
 
-            // item3 copy_1 -> item3_1
-            string newName = Regex.Replace(oldName, @" copy_(\d+)", "_$1");
+            string extension = Path.GetExtension(file);
 
-            if (newName != oldName)
-            {
-                AssetDatabase.RenameAsset(path, newName);
-                Debug.Log($"Renamed: {oldName} → {newName}");
-            }
+            string newName = $"item-{index}{extension}";
+
+            string newPath = Path.Combine(folderPath, newName);
+
+            AssetDatabase.MoveAsset(file, newPath);
+
+            index++;
         }
 
         AssetDatabase.Refresh();
+
+        Debug.Log("Rename Done!");
     }
 }

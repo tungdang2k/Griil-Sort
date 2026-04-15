@@ -1,57 +1,79 @@
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class ShopPage : MonoBehaviour
 {
+    [SerializeField] private ScrollRect m_scrollRect;
 
     [SerializeField] private TextMeshProUGUI m_coin1000PriceText;
     [SerializeField] private TextMeshProUGUI m_coin5000PriceText;
     [SerializeField] private TextMeshProUGUI m_coin10000PriceText;
-    [SerializeField] private TextMeshProUGUI m_removeAds;
+    [SerializeField] private TextMeshProUGUI m_coin25000PriceText;
+    [SerializeField] private TextMeshProUGUI m_coin50000PriceText;
+    [SerializeField] private TextMeshProUGUI m_coin100000PriceText;
 
+    [SerializeField] private TextMeshProUGUI m_legendarybundle;
+    [SerializeField] private TextMeshProUGUI m_bigbundle;
+    [SerializeField] private TextMeshProUGUI m_startedbundle;
+    [SerializeField] private TextMeshProUGUI m_smallbundle;
+
+    private Dictionary<string, TextMeshProUGUI> m_priceTextMap;
+    private Dictionary<string, TextMeshProUGUI> PriceTextMap
+    {
+        get
+        {
+            if (m_priceTextMap == null)
+                InitPriceTextMap();
+            return m_priceTextMap;
+        }
+    }
+    private void Awake()
+    {
+        InitPriceTextMap();
+    }
+
+    private void Start()
+    {
+       
+        Canvas.ForceUpdateCanvases();
+        m_scrollRect.verticalNormalizedPosition = 1f;
+    }
+
+    private void InitPriceTextMap()
+    { 
+        var p = ProductIAPManager.Instance;
+        m_priceTextMap = new Dictionary<string, TextMeshProUGUI>
+        {
+            { p.coin1000,       m_coin1000PriceText   },
+            { p.coin5000,       m_coin5000PriceText   },
+            { p.coin10000,      m_coin10000PriceText  },
+            { p.coin25000,      m_coin25000PriceText  },
+            { p.coin50000,      m_coin50000PriceText  },
+            { p.coin100000,     m_coin100000PriceText },
+            { p.legendarybundle,m_legendarybundle     },
+            { p.bigbundle,      m_bigbundle           },
+            { p.startedbundle,  m_startedbundle       },
+            { p.smallbundle,    m_smallbundle         },
+        };
+    }
 
     public void UpdateButtonPrice(string productId, string price)
     {
-        if (productId == ProductIAPManager.Instance.coin1000)
-        {
-            m_coin1000PriceText.text = price;
-        }
-        else if (productId == ProductIAPManager.Instance.coin5000)
-        {
-            m_coin5000PriceText.text = price;
-        }
-        else if (productId == ProductIAPManager.Instance.coin10000)
-        {
-            m_coin10000PriceText.text = price;
-        }
-        else if (productId == ProductIAPManager.Instance.removeAds)
-        {
-            m_removeAds.text = price;
-
-        }
+        if (PriceTextMap.TryGetValue(productId, out var text))
+            text.text = price;
     }
 
-
-    public void Coin1000()
-    {
-        ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin1000);
-    }
-
-    public void Coin5000()
-     {
-        ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin5000);
-    }
-    public void Coin10000()
-    {
-        ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin10000);
-    }
     
-     public void Coin50000()
-     {
-        
-    }
-
-   
-
+    public void Coin1000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin1000);
+    public void Coin5000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin5000);
+    public void Coin10000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin10000);
+    public void Coin25000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin25000);
+    public void Coin50000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin50000);
+    public void Coin100000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin100000);
+    public void Legendarybundle() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Legendarybundle);
+    public void Bigbundle() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Bigbundle);
+    public void Startedbundle() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Startedbundle);
+    public void Smallbundle() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Smallbundle);
 }

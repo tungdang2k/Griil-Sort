@@ -7,6 +7,7 @@ public class DropDragCtrl : MonoBehaviour
 {
     [SerializeField] private Image m_imgFoodDrag;
     [SerializeField] private float m_timeCheckSuggest;
+    [SerializeField] private float m_dragSize = 160f;
 
     private FoodSlot m_currentfoodSlot, m_cacheFood;
     private bool m_hasDrag;
@@ -51,8 +52,20 @@ public class DropDragCtrl : MonoBehaviour
                     m_imgFoodDrag.gameObject.SetActive(true);
 
                     m_imgFoodDrag.sprite = m_currentfoodSlot.GetSpriteFood();
-                    m_imgFoodDrag.SetNativeSize();
                     m_imgFoodDrag.transform.position = m_currentfoodSlot.transform.position; // gan vi tri               
+
+
+                    var rt = m_imgFoodDrag.rectTransform;
+
+                    rt.sizeDelta = new Vector2(m_dragSize, m_dragSize);
+
+                // reset transform
+                    rt.localScale = Vector3.one;
+                    rt.localRotation = Quaternion.identity;
+                    rt.anchoredPosition = Vector2.zero;
+
+                // giữ tỉ lệ ảnh
+                    m_imgFoodDrag.preserveAspect = true;
 
 
                     m_imgFoodDrag.transform.position = eventData.position;
@@ -124,7 +137,8 @@ public class DropDragCtrl : MonoBehaviour
                         m_cacheFood?.OnHideFood();
                         m_cacheFood = slot;
                         m_cacheFood.OnFadeFood();
-                        m_cacheFood.OnSetSlot(m_currentfoodSlot.GetSpriteFood());
+                        
+                        m_cacheFood.ShowPreview(m_currentfoodSlot.GetSpriteFood());
                     }
                 }
                 else // vi tri tro chuot da co item
@@ -135,7 +149,8 @@ public class DropDragCtrl : MonoBehaviour
                         m_cacheFood?.OnHideFood();
                         m_cacheFood = slotAvalable;
                         m_cacheFood.OnFadeFood();
-                        m_cacheFood.OnSetSlot(m_currentfoodSlot.GetSpriteFood());
+                        
+                        m_cacheFood.ShowPreview(m_currentfoodSlot.GetSpriteFood());
                     }
                     else
                     {

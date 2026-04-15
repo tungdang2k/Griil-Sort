@@ -1,4 +1,4 @@
-using DG.Tweening;
+﻿using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -7,20 +7,27 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
     IDragHandler,
     IEndDragHandler
 {
+    [SerializeField] private float m_padding = 20f;
+    //[SerializeField] private float m_slotScale = 0.65f;
     private DropDragCtrl m_dropDragCtrl;
 
     private Color m_nomalColor = new Color(1f, 1f, 1f, 1f);
     private Color m_fadeColor = new Color(1f,1f, 1f, 0.5f);
     private Image m_imgFood;
+    
+
     private GrillStation m_grillCtrl;
     public Image ImgFood => m_imgFood;
+
     private void Awake()
     {
        
         m_dropDragCtrl = FindAnyObjectByType<DropDragCtrl>();
-        m_grillCtrl = transform.parent.parent.GetComponent<GrillStation>();
         m_imgFood = this.transform.GetChild(0).GetComponent<Image>();
         m_imgFood.gameObject.SetActive(false);
+        m_grillCtrl = GetComponentInParent<GrillStation>();
+
+
     }
 
 
@@ -40,14 +47,47 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
     {
         m_dropDragCtrl.OnBtnUp(eventData);
     }
-
-    public void OnSetSlot(Sprite foodSprite)
+    private void ApplyLayout()
     {
-        m_imgFood.sprite = foodSprite;
-        m_imgFood.gameObject.SetActive(true);
-        m_imgFood.SetNativeSize();
+        RectTransform rt = m_imgFood.rectTransform;
+
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = new Vector2(m_padding, m_padding);
+        rt.offsetMax = new Vector2(-m_padding, -m_padding);
+
+        rt.localScale = Vector3.one;
+        rt.localRotation = Quaternion.identity;
+
+        m_imgFood.preserveAspect = true;
     }
 
+    public void ShowPreview(Sprite sprite)
+    {
+        if (sprite == null) return;
+
+        m_imgFood.sprite = sprite;
+        m_imgFood.color = m_fadeColor;
+        m_imgFood.gameObject.SetActive(true);
+        ApplyLayout();
+    }
+    public void OnSetSlot(Sprite foodSprite)
+    {
+        if (foodSprite == null) return;
+
+        m_imgFood.sprite = foodSprite;
+        m_imgFood.color = m_nomalColor;
+        m_imgFood.gameObject.SetActive(true);
+
+        RectTransform rt = m_imgFood.rectTransform;
+        rt.pivot = new Vector2(0.5f, 0.5f);
+
+        //  Reset transform 
+        rt.localScale = Vector3.one;
+        rt.localRotation = Quaternion.identity;
+        rt.anchoredPosition = Vector2.zero;
+        ApplyLayout();
+    }
 
     public void OnFadeFood()
     {
@@ -88,14 +128,33 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
         OnSetSlot(img.sprite);
         m_imgFood.color = m_nomalColor;
         m_imgFood.transform.position = img.transform.position;
-        m_imgFood.transform.localScale = img.transform.localScale;
-        m_imgFood.transform.localEulerAngles = img.transform.localEulerAngles;
 
-        m_imgFood.transform.DOLocalMove(Vector3.zero, 0.3f);
-        m_imgFood.transform.DOScale(Vector3.one, 0.3f);
-        m_imgFood.transform.DOLocalRotate(Vector3.zero, 0.3f);
+        var rt = m_imgFood.rectTransform;
+
+        // 1. set sprite
+        m_imgFood.sprite = img.sprite;
+        m_imgFood.color = m_nomalColor;
+        m_imgFood.gameObject.SetActive(true);
+
+        // 2. set về chuẩn slot
+        rt.localScale = Vector3.one;
+        rt.localRotation = Quaternion.identity;
+        rt.anchoredPosition = Vector2.zero;
+
+        // 3. giữ aspect
+        m_imgFood.preserveAspect = true;
+
+        // 4. set vị trí bắt đầu (world)
+        rt.position = img.transform.position;
+
+        // 5. animate về slot
+        rt.DOKill();
+        rt.DOMove(transform.position, 0.3f).SetEase(Ease.OutBack);
+        m_imgFood.transform.DOScale(1, 0.3f);
+        
+
     }
-
+    
     public void OnCheckPrepareTray()
     {
         m_grillCtrl?.OnCheckPrepareTray();
