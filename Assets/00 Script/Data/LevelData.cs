@@ -16,7 +16,7 @@ public class SpawnWareData
 {
     public int totalWare;
     public int totalWarePattern;
-    
+    public List<LayerData> listLayerData;
 }
 [Serializable]
 public class BoardData
@@ -31,4 +31,13 @@ public class TrayData
 {
     public string id;
     public int size;
+}
+
+[Serializable]
+public class LayerData
+{
+    public int numberEmptySlot;
+    public float match3Ratio;
+    public float match2Ratio;
+    public float match1Ratio;
 }

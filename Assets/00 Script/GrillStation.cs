@@ -82,10 +82,8 @@ public class GrillStation : MonoBehaviour
 
         UpdateLockText(RequiredMerge);
 
-
         m_lockedVisual.SetActive(true);
         m_normalVisual.SetActive(false);
-
         
     }
 
@@ -110,6 +108,13 @@ public class GrillStation : MonoBehaviour
         m_lockedVisual.SetActive(false); 
         m_normalVisual.SetActive(true);
 
+        StartCoroutine(UnlockNextFrame());
+    }
+
+    private IEnumerator UnlockNextFrame()
+    {
+        // Chờ UI rebuild layout xong
+        yield return null;
         OnPrepareTray();
     }
 
@@ -330,6 +335,7 @@ public class GrillStation : MonoBehaviour
             tray.gameObject.SetActive(false);
             CleanEmptyTraysInStack();
            
+            OnCheckMerge();
         }
 
     }

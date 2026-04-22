@@ -30,7 +30,7 @@ public class BannerAds : MonoBehaviour
 
     void OnBannerError(string message)
     {
-        Debug.Log("Banner Error: " + message);
+        Debug.LogError("Banner Error: " + message);
     }
 
     public void Show()
@@ -48,12 +48,12 @@ public class BannerAds : MonoBehaviour
     public void Hide()
     {
         Advertisement.Banner.Hide();
-        Debug.Log("Banner hide");
+        
     }
 
     void OnBannerClicked()
     {
-        Debug.Log("Banner clicked");
+        //Debug.Log("Banner clicked");
     }
 
     void OnBannerShown()
@@ -63,6 +63,6 @@ public class BannerAds : MonoBehaviour
 
     void OnBannerHidden()
     {
-        Debug.Log("Banner hidden");
+        //Debug.Log("Banner hidden");
     }
 }

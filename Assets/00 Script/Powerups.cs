@@ -85,7 +85,6 @@ public class Powerups : MonoBehaviour
         if (id == CONSTANTS.MAGNET && !CanUseMagnet())
         {
             // TODO: hiện thông báo "Không có nhóm nào đủ 3 để hút"
-            Debug.Log("Magnet: không có nhóm nào >= 3");
             return;
         }
         PowerUpUsesManager.AddUses(id, -1);

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DG.Tweening.Core.Easing;
+using UnityEngine;
 using UnityEngine.Advertisements;
 public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
 {
@@ -13,8 +14,15 @@ public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
 
     protected override void Awake()
     {
+    #if UNITY_EDITOR || DEVELOPMENT_BUILD
+        testMode = true;
+    #else
+        testMode = false;
+    #endif
+
         base.Awake();
         Advertisement.Initialize(androidGameId, testMode, this);
+        
     }
 
     public bool IsAdsRemoved => PlayerPrefs.GetInt(CONSTANTS.ADS_REMOVED_KEY, 0) == 1;
@@ -26,18 +34,18 @@ public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
         HideBanner();
         OnAdsRemoved?.Invoke();
     }
-
+     
 
     public void OnInitializationComplete()
     {
-        if (IsAdsRemoved)
+        if (!IsAdsRemoved)
         {
-            return;
+            bannerAds.Init();
+            interstitialAds.Init();
         }
 
-        bannerAds.Init();
-        interstitialAds.Init();
         rewardedAds.Init();
+
     }
 
     public void TryShowInterstitial(System.Action onComplete)
@@ -77,6 +85,12 @@ public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
 
     public void ShowRewarded(System.Action onReward)
     {
+        if (rewardedAds == null)
+        {
+            Debug.LogError("rewardedAds NULL");
+            return;
+        }
+
         rewardedAds.Show(onReward);
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Advertisements;
 
@@ -12,6 +12,7 @@ public class RewardedAds : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsShowLi
     public void Init()
     {
         Load();
+
     }
 
     public void Load()
@@ -21,7 +22,11 @@ public class RewardedAds : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsShowLi
 
     public void Show(Action rewardCallback)
     {
-        if (!isReady) return;
+        if (!isReady)
+        {
+            Load();
+            return;
+        }
 
         onReward = rewardCallback;
         Advertisement.Show(m_adUnitId, this);
@@ -35,7 +40,7 @@ public class RewardedAds : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsShowLi
 
     public void OnUnityAdsFailedToLoad(string id, UnityAdsLoadError error, string msg)
     {
-        Debug.Log("Rewarded Load Fail: " + msg);
+        Debug.LogError("Rewarded Load Fail: " + msg);
     }
 
     public void OnUnityAdsShowComplete(string id, UnityAdsShowCompletionState state)

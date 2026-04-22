@@ -208,13 +208,13 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
 
     private void OnPurchasePending(PendingOrder order)
     {
-        Debug.Log("pending order: " + order);
+
         m_storeController.ConfirmPurchase(order);
 
     }
     private void OnPurchaseDeferred(DeferredOrder deferredOrder)
     {
-        Debug.Log("deferred order: " + deferredOrder?.Info);
+        //Debug.Log("deferred order: " + deferredOrder?.Info);
 
         // Show UI to inform the user that their purchase is pending and will be processed later.
     }

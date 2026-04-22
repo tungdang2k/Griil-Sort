@@ -94,8 +94,10 @@ public class PowerupShopPopup : MonoBehaviour
     // 👉 mock (bạn thay bằng ads thật)
     void ShowRewardAd(System.Action onDone)
     {
-        Debug.Log("Watch Ads...");
-        onDone?.Invoke();
+        AdsManager.Instance.ShowRewarded(() =>
+        {
+            onDone?.Invoke();
+        });
     }
 
 }

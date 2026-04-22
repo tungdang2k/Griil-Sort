@@ -59,7 +59,6 @@ public class CountDowntimer : MonoBehaviour
 
     private void OnTimeUp()
     {
-        Debug.Log("⏰ Time Up!");
         AudioManager.Instance.PlaySFX(SFXType.Lose);
         GameManager.Instance.Lose();
 

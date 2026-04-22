@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 
 public class WinPanel : MonoBehaviour
@@ -20,7 +20,6 @@ public class WinPanel : MonoBehaviour
 
     }
 
-
     public void OnContinueWin()
     {
         GoldManager.Instance.AddGold(m_goldUI.SessionGold);
@@ -29,10 +28,12 @@ public class WinPanel : MonoBehaviour
 
     public void OnWatchAdWin()
     {
+
         AdsManager.Instance.ShowRewarded(() =>
         {
             GoldManager.Instance.AddGold(m_goldUI.SessionGold * 2);
             GameManager.Instance.GoHome();
+
         });
     }
 }

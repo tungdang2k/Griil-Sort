@@ -34,7 +34,22 @@ public static class Utils
 
         return result;
     }
-   
+
+    public static class Debug
+    {
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        public static void Info(string msg)
+        {
+            UnityEngine.Debug.Log(msg); 
+        }
+
+        public static void Error(string msg)
+        {
+            UnityEngine.Debug.LogError(msg);
+        }
+    }
+
     //public static T GetRayCastUI<T>(Vector2 position) where T : MonoBehaviour
     //{
     //    PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
