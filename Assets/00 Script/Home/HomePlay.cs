@@ -8,7 +8,7 @@ public class HomePlay : MonoBehaviour
     [SerializeField] private GameObject m_btnAdsRemove;
 
     private int m_level;
-    [SerializeField] private int showAdEveryNLevels = 2;
+    [SerializeField] private int m_showAdEveryNLevels = 3;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -38,7 +38,7 @@ public class HomePlay : MonoBehaviour
         int levelsPlayed = PlayerPrefs.GetInt("LEVELS_PLAYED_SINCE_AD", 0) + 1;
         PlayerPrefs.SetInt("LEVELS_PLAYED_SINCE_AD", levelsPlayed);
 
-        bool shouldShowAd = levelsPlayed >= showAdEveryNLevels;
+        bool shouldShowAd = levelsPlayed >= m_showAdEveryNLevels;
 
         if (shouldShowAd)
         {
