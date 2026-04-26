@@ -37,7 +37,7 @@ public class GameManager : Singleton<GameManager>
     private int m_currentLevel;
     private List<GrillStation> m_listGrill = new List<GrillStation>();
     private List<GrillStation> m_bonusGrills = new List<GrillStation>();
-    private float m_avgTray; // gia tri trung binh thuc an cho 1 dia
+    private float m_avgTray; 
     private List<Sprite> m_totalSpriteFood = new List<Sprite>();
     private bool m_isGameEnded = false;
     private int m_mergeCount = 0;
@@ -410,7 +410,7 @@ public class GameManager : Singleton<GameManager>
     private void ShowWinPanel()
     { 
         if (m_isGameEnded) return;
-        AdsManager.Instance.rewardedAds.Load();
+
         m_isGameEnded = true;
         OnWin?.Invoke();
        

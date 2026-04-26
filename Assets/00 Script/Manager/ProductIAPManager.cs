@@ -5,7 +5,7 @@ using Unity.Services.Core.Environments;
 using UnityEngine;
 using UnityEngine.Purchasing;
 
-public class ProductIAPManager : Singleton<ProductIAPManager>
+public class ProductIAPManager : MonoBehaviour
 {
     [SerializeField] private ShopPage m_shopPage;
     [SerializeField] private PopupNoAds m_popupNoAds;
@@ -24,28 +24,60 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
 
     public string removeAds = "remove_ads";
     private HashSet<string> m_processedOrderIds = new HashSet<string>();
-
-
+    private static Dictionary<string, string> m_cachedPrices = new Dictionary<string, string>();
     public static bool IsInitialized { get; private set; } = false;
 
     private static StoreController m_storeController;
-    private bool m_isProcessingPurchase = false;
-    protected override async void Awake()
+     async void Awake()
     {
-        if (m_shopPage == null)
-            m_shopPage = FindFirstObjectByType<ShopPage>();
+        m_shopPage = FindFirstObjectByType<ShopPage>();
+        m_popupNoAds = FindFirstObjectByType<PopupNoAds>();
+        m_homePlay = FindFirstObjectByType<HomePlay>();
 
+        if (IsInitialized && m_storeController != null)
+        {
+            UnsubscribeEvents();
+            SubscribeEvents();
+            ApplyCachedPrices();
+            return;
+        }
         await InitIAP();
 
     }
 
-    private void Start()
+    private void OnDestroy()
     {
-        
+        UnsubscribeEvents(); 
     }
 
-   
+    private void SubscribeEvents()
+    {
+        m_storeController.OnStoreConnected += OnStoreConnected;
+        m_storeController.OnStoreDisconnected += OnStoreDisconnected;
+        m_storeController.OnProductsFetched += OnProductsFetched;
+        m_storeController.OnProductsFetchFailed += OnProductsFetchFailed;
+        m_storeController.OnPurchasesFetched += OnPurchasesFetched;
+        m_storeController.OnPurchasesFetchFailed += OnPurchasesFetchFailed;
+        m_storeController.OnPurchasePending += OnPurchasePending;
+        m_storeController.OnPurchaseFailed += OnPurchaseFailed;
+        m_storeController.OnPurchaseConfirmed += OnPurchaseConfirmed;
+        m_storeController.OnPurchaseDeferred += OnPurchaseDeferred;
+    }
 
+    private void UnsubscribeEvents()
+    {
+        if (m_storeController == null) return;
+        m_storeController.OnStoreConnected -= OnStoreConnected;
+        m_storeController.OnStoreDisconnected -= OnStoreDisconnected;
+        m_storeController.OnProductsFetched -= OnProductsFetched;
+        m_storeController.OnProductsFetchFailed -= OnProductsFetchFailed;
+        m_storeController.OnPurchasesFetched -= OnPurchasesFetched;
+        m_storeController.OnPurchasesFetchFailed -= OnPurchasesFetchFailed;
+        m_storeController.OnPurchasePending -= OnPurchasePending;
+        m_storeController.OnPurchaseFailed -= OnPurchaseFailed;
+        m_storeController.OnPurchaseConfirmed -= OnPurchaseConfirmed;
+        m_storeController.OnPurchaseDeferred -= OnPurchaseDeferred;
+    }
     private async Task InitIAP()
     {
         try
@@ -54,18 +86,9 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
             await UnityServices.InitializeAsync(options);
             m_storeController = UnityIAPServices.StoreController();
 
-            m_storeController.OnStoreConnected += OnStoreConnected; // ✅
-            m_storeController.OnStoreDisconnected += OnStoreDisconnected;
-            m_storeController.OnProductsFetched += OnProductsFetched;
-            m_storeController.OnProductsFetchFailed += OnProductsFetchFailed;
-            m_storeController.OnPurchasesFetched += OnPurchasesFetched;
-            m_storeController.OnPurchasesFetchFailed += OnPurchasesFetchFailed;
-            m_storeController.OnPurchasePending += OnPurchasePending;
-            m_storeController.OnPurchaseFailed += OnPurchaseFailed;
-            m_storeController.OnPurchaseConfirmed += OnPurchaseConfirmed;
-            m_storeController.OnPurchaseDeferred += OnPurchaseDeferred;
+            SubscribeEvents();
 
-            await m_storeController.Connect(); // FetchProducts sẽ gọi trong callback
+            await m_storeController.Connect(); 
         }
         catch (System.Exception ex)
         {
@@ -120,7 +143,7 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
         {
             string price = product.metadata.localizedPriceString + " " + product.metadata.isoCurrencyCode;
             // pass price to UI
-
+            m_cachedPrices[product.definition.id] = price;
             if (product.definition.id == removeAds)
             {
                 m_popupNoAds?.UpdateRemoveAdsPrice(price);
@@ -132,7 +155,16 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
             
         }
     }
-
+    private void ApplyCachedPrices()
+    {
+        foreach (var kvp in m_cachedPrices)
+        {
+            if (kvp.Key == removeAds)
+                m_popupNoAds?.UpdateRemoveAdsPrice(kvp.Value);
+            else
+                m_shopPage?.UpdateButtonPrice(kvp.Key, kvp.Value);
+        }
+    }
 
     private void OnProductsFetchFailed(ProductFetchFailed  reason)
     {
@@ -208,7 +240,6 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
 
     private void OnPurchasePending(PendingOrder order)
     {
-
         m_storeController.ConfirmPurchase(order);
 
     }
@@ -221,18 +252,12 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
 
     private void OnPurchaseConfirmed(Order order)
     {
-       
-        if (m_isProcessingPurchase)
-        {
-            Debug.LogWarning("[IAP] Duplicate OnPurchaseConfirmed blocked!");
-            return;
-        }
-        m_isProcessingPurchase = true;
+
 
         if (order?.Info?.PurchasedProductInfo == null ||
             order.Info.PurchasedProductInfo.Count == 0)
         {
-            m_isProcessingPurchase = false;
+
             return;
         }
 
@@ -254,7 +279,7 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
         {
             GoldManager.Instance.AddGold(2500);
             AddPowerupToPlayer(2);
-            GrantRemoveAdsFromBundle(); // ✅ Tự động grant remove_ads
+            GrantRemoveAdsFromBundle(); 
         }
         else if (productId == bigbundle)
         {
@@ -275,23 +300,14 @@ public class ProductIAPManager : Singleton<ProductIAPManager>
             GrantRemoveAdsFromBundle();
         }
 
-
-        m_isProcessingPurchase = false;
     }
 
     private void GrantRemoveAdsFromBundle()
     {
-        // Nếu chưa remove ads thì purchase remove_ads product
-        if (!AdsManager.Instance.IsAdsRemoved)
-        {
-            m_storeController.PurchaseProduct(removeAds);
-            
-        }
-        else
-        {
-            // Đã remove ads rồi, chỉ cần update UI
-            m_homePlay?.HideRemoveAdsButton();
-        }
+        AdsManager.Instance.SetAdsRemoved();    
+        m_popupNoAds?.HidePopup();
+        m_homePlay?.HideRemoveAdsButton();
+
     }
 
     private void AddPowerupToPlayer( int num)

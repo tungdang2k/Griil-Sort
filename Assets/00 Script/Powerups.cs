@@ -22,6 +22,7 @@ public class Powerups : MonoBehaviour
     [SerializeField] private Image m_shufflePlusIcon;
     [SerializeField] private Image m_timePlusIcon;
     [SerializeField] private float m_magnetDummySize = 160f;
+    private bool m_isUsingPowerup = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
@@ -75,6 +76,7 @@ public class Powerups : MonoBehaviour
 
     void HandlePowerUp(string id, System.Action action)
     {
+        if (m_isUsingPowerup) return;
         int uses = PowerUpUsesManager.GetUses(id);
 
         if (uses <= 0)
@@ -87,6 +89,7 @@ public class Powerups : MonoBehaviour
             // TODO: hiện thông báo "Không có nhóm nào đủ 3 để hút"
             return;
         }
+        m_isUsingPowerup = true;
         PowerUpUsesManager.AddUses(id, -1);
         UpdatePowerUpUI();
         action?.Invoke();
@@ -129,7 +132,7 @@ public class Powerups : MonoBehaviour
             }
         }
 
-    }
+    } 
 
    
     private void MagnetGroup(List<Image> items)
@@ -214,6 +217,7 @@ public class Powerups : MonoBehaviour
             }
 
             GameManager.Instance.OnMinusFood();
+            m_isUsingPowerup = false;
         });
     }
 
@@ -296,6 +300,10 @@ public class Powerups : MonoBehaviour
                 .DOScale(1f, fallTime) 
                 .SetEase(Ease.OutBack);
         }
+
+        yield return new WaitForSeconds(fallTime);
+
+        m_isUsingPowerup = false;
     }
 
     private void SmartShuffle(List<Image> result)
@@ -352,6 +360,7 @@ public class Powerups : MonoBehaviour
         m_timer.AddTime(m_TimeBonus);
         ShowAddTimePopup(m_TimeBonus);
         AudioManager.Instance.PlaySFX(SFXType.TimeBonus);
+       
     }
 
     private void ShowAddTimePopup(float seconds)
@@ -366,7 +375,10 @@ public class Powerups : MonoBehaviour
           .OnComplete(() =>
           {
               rt.DOScale(0f, 0.15f).SetDelay(0.4f)
-                .OnComplete(() => Destroy(txt.gameObject));
+                .OnComplete(() => {
+                    Destroy(txt.gameObject);
+                    m_isUsingPowerup = false;
+                });
           });
     }
 

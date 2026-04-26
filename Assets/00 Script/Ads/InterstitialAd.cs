@@ -9,14 +9,14 @@ public class InterstitialAds : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSh
 
     float lastShowTime;
     bool isReady = false;
-    System.Action onCompleteCallback;  // ← thêm
+    System.Action onCompleteCallback; 
 
     public void Init() => Load();
     public void Load() => Advertisement.Load(adUnitId, this);
 
     public bool CanShow() => isReady && Time.time - lastShowTime > cooldown;
 
-    public void ShowWithCallback(System.Action onComplete)  // ← thêm
+    public void ShowWithCallback(System.Action onComplete)   
     {
         onCompleteCallback = onComplete;
         Advertisement.Show(adUnitId, this);
@@ -41,7 +41,7 @@ public class InterstitialAds : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSh
 
     public void OnUnityAdsFailedToLoad(string id, UnityAdsLoadError error, string msg)
     {
-        Debug.Log("Interstitial Load Fail: " + msg);
+        Debug.LogError("Interstitial Load Fail: " + msg);
     }
     public void OnUnityAdsShowFailure(string id, UnityAdsShowError error, string msg)
     {

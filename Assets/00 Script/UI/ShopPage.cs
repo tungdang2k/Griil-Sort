@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class ShopPage : MonoBehaviour
 {
+    [SerializeField] private ProductIAPManager m_productIAPManager;
+
     [SerializeField] private ScrollRect m_scrollRect;
 
     [SerializeField] private TextMeshProUGUI m_coin1000PriceText;
@@ -31,6 +33,12 @@ public class ShopPage : MonoBehaviour
     }
     private void Awake()
     {
+        if (m_productIAPManager == null)
+        {
+            m_productIAPManager = FindFirstObjectByType<ProductIAPManager>();
+        }
+
+
         InitPriceTextMap();
     }
 
@@ -43,7 +51,7 @@ public class ShopPage : MonoBehaviour
 
     private void InitPriceTextMap()
     { 
-        var p = ProductIAPManager.Instance;
+        var p = m_productIAPManager;
         m_priceTextMap = new Dictionary<string, TextMeshProUGUI>
         {
             { p.coin1000,       m_coin1000PriceText   },
@@ -66,14 +74,14 @@ public class ShopPage : MonoBehaviour
     }
 
     
-    public void Coin1000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin1000);
-    public void Coin5000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin5000);
-    public void Coin10000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin10000);
-    public void Coin25000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin25000);
-    public void Coin50000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin50000);
-    public void Coin100000() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Coin100000);
-    public void Legendarybundle() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Legendarybundle);
-    public void Bigbundle() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Bigbundle);
-    public void Startedbundle() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Startedbundle);
-    public void Smallbundle() => ProductIAPManager.Instance.BuyProduct(IAPProductKey.Smallbundle);
+    public void Coin1000() => m_productIAPManager.BuyProduct(IAPProductKey.Coin1000);
+    public void Coin5000() => m_productIAPManager.BuyProduct(IAPProductKey.Coin5000);
+    public void Coin10000() => m_productIAPManager.BuyProduct(IAPProductKey.Coin10000);
+    public void Coin25000() => m_productIAPManager.BuyProduct(IAPProductKey.Coin25000);
+    public void Coin50000() => m_productIAPManager.BuyProduct(IAPProductKey.Coin50000);
+    public void Coin100000() => m_productIAPManager.BuyProduct(IAPProductKey.Coin100000);
+    public void Legendarybundle() => m_productIAPManager.BuyProduct(IAPProductKey.Legendarybundle);
+    public void Bigbundle() => m_productIAPManager.BuyProduct(IAPProductKey.Bigbundle);
+    public void Startedbundle() => m_productIAPManager.BuyProduct(IAPProductKey.Startedbundle);
+    public void Smallbundle() => m_productIAPManager.BuyProduct(IAPProductKey.Smallbundle);
 }

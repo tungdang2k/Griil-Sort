@@ -5,12 +5,18 @@ using UnityEngine.UIElements;
 public class PopupNoAds : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI m_removeAdsPriceText;
+    [SerializeField] private ProductIAPManager m_productIAPManager;
 
     private void Start()
     {
         if (AdsManager.Instance.IsAdsRemoved)
         {
             HidePopup();
+        }
+
+        if (m_productIAPManager == null)
+        {
+            m_productIAPManager = FindFirstObjectByType<ProductIAPManager>();
         }
     }
 
@@ -28,8 +34,8 @@ public class PopupNoAds : MonoBehaviour
     public void OnRemoveAds()
     {
         AudioManager.Instance.PlaySFX(SFXType.Click);
-        Debug.Log("Remove Ads Clicked");
-        ProductIAPManager.Instance.BuyProduct(IAPProductKey.RemoveAds);
+
+        m_productIAPManager.BuyProduct(IAPProductKey.RemoveAds);
     }
 
 
