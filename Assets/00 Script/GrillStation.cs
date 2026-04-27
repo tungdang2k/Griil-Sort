@@ -14,6 +14,7 @@ public class GrillStation : MonoBehaviour
     [SerializeField] private GameObject m_lockedVisual;
     [SerializeField] private GameObject m_TraysVisual;
     [SerializeField] private TextMeshProUGUI m_lockCountText;
+    [SerializeField] private PlateAnimation m_plateAnimation;
 
     private List<TrayItem> m_totalTrays = new List<TrayItem>();
     private List<FoodSlot> m_totalSlot = new List<FoodSlot>();
@@ -27,7 +28,12 @@ public class GrillStation : MonoBehaviour
     {
         m_totalSlot = Utils.GetListInChild<FoodSlot>(m_slotContainer);
         m_totalTrays = Utils.GetListInChild<TrayItem>(m_trayContainer);
-        
+        if(m_plateAnimation == null)
+        {
+            m_plateAnimation = FindFirstObjectByType<PlateAnimation>();
+        }
+
+
     }
 
     public void SetAsNormal()
@@ -259,8 +265,6 @@ public class GrillStation : MonoBehaviour
     }
 
 
-
-
     public FoodSlot GetSlotNull()
     {
         for (int i = 0; i < m_totalSlot.Count; i++)
@@ -275,41 +279,31 @@ public class GrillStation : MonoBehaviour
 
     public void OnCheckMerge()
     {
-        if (GetSlotNull() == null) // kiểm tra số lượng slot đủ item 3  chưa
-        {
-            if(CanMerge())
-            {
-                AudioManager.Instance.PlaySFX(SFXType.Merge);
 
-                for (int i = 0; i < m_totalSlot.Count; i++)
-                {
-                    m_totalSlot[i].OnActiveFood(false);
-                }
-                this.OnPrepareTray();
-                GameManager.Instance?.OnMinusFood();
-            }   
-        }
+        if (GetSlotNull() != null) return;
+        if (!CanMerge()) return;
+
+        AudioManager.Instance.PlaySFX(SFXType.Merge);
+
+        List<Image> mergeItems = m_totalSlot
+            .Where(s => s.HasFood())
+            .Select(s => s.ImgFood)
+            .ToList();
+
+        m_plateAnimation.PlayPlateAnimation(mergeItems, () =>
+        {
+            for (int i = 0; i < m_totalSlot.Count; i++)
+                m_totalSlot[i].OnActiveFood(false);
+
+            OnPrepareTray();
+            GameManager.Instance?.OnMinusFood();
+        });
+
     }
 
 
     private void OnPrepareTray()
     {
-
-        //if (m_stackTray.Count > 0)
-        //{
-        //    TrayItem tray = m_stackTray.Pop();
-        //    for (int i = 0; i < tray.FoodList.Count; i++)
-        //    {
-        //        Image img = tray.FoodList[i];
-        //        if (img.gameObject.activeSelf)
-        //        {
-        //            m_totalSlot[i].OnPrepareItem(img);
-        //            img.gameObject.SetActive(false);
-        //        }
-        //    }
-        //    tray.gameObject.SetActive(false);
-        //    CleanEmptyTraysInStack();
-        //}
 
         if (m_stackTray.Count > 0)
         {
@@ -452,4 +446,7 @@ public class GrillStation : MonoBehaviour
 
         return list;
     }
+
+
+    
 }

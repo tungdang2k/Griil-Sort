@@ -9,7 +9,6 @@ using UnityEngine.UI;
 public class Powerups : MonoBehaviour
 {
     [SerializeField] private CountDowntimer m_timer;
-    [SerializeField] private List<Image> m_imgDummyList = new List<Image>();
     [SerializeField] private  Transform m_magnetTarget;
     [SerializeField] private TextMeshProUGUI m_txtAddTimePrefab;
     [SerializeField] private Transform m_popupRoot;
@@ -21,14 +20,19 @@ public class Powerups : MonoBehaviour
     [SerializeField] private Image m_magnetPlusIcon;
     [SerializeField] private Image m_shufflePlusIcon;
     [SerializeField] private Image m_timePlusIcon;
-    [SerializeField] private float m_magnetDummySize = 160f;
+    [SerializeField] private PlateAnimation m_plateAnimation;
+
     private bool m_isUsingPowerup = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
         if(m_storagePopup == null)
         {   
-            m_storagePopup = FindAnyObjectByType<PowerupShopPopup>();
+            m_storagePopup = FindFirstObjectByType<PowerupShopPopup>();
+        }
+        if(m_plateAnimation == null)
+        {
+            m_plateAnimation = FindFirstObjectByType<PlateAnimation>();
         }
 
         UpdatePowerUpUI();
@@ -132,74 +136,32 @@ public class Powerups : MonoBehaviour
             }
         }
 
-    } 
+    }
 
-   
     private void MagnetGroup(List<Image> items)
     {
-        if (items == null || items.Count < 3) return;
-        if (m_imgDummyList.Count < 3) return;
-
-        float duration = 0.35f;
-        List<Image> foods = items.Take(3).ToList();
-
-        for (int i = 0; i < foods.Count; i++)
+        if (items == null || items.Count < 3)
         {
-            Image imgFood = foods[i];
-            Image imgDummy = m_imgDummyList[i];
-            Image capturedDummy = imgDummy;
-
-            imgDummy.sprite = imgFood.sprite;
-
-            var rt = imgDummy.rectTransform;
-
-            // size cố định
-            rt.sizeDelta = new Vector2(m_magnetDummySize, m_magnetDummySize);
-            // reset transform
-            rt.localScale = Vector3.one;
-
-            imgDummy.preserveAspect = true;
-
-            imgDummy.transform.position = imgFood.transform.position;
-
-            imgDummy.transform.rotation = Quaternion.identity;
-            imgDummy.color = Color.white;
-            imgDummy.gameObject.SetActive(true);
-            imgFood.gameObject.SetActive(false); // ẩn tạm để tween
-            imgDummy.transform.DOKill();
-
-            Sequence seq = DOTween.Sequence();
-            seq.Join(capturedDummy.transform
-                .DOMove(m_magnetTarget.position, duration)
-                .SetEase(Ease.InBack));
-            seq.Join(capturedDummy.transform.DORotate(
-                new Vector3(0, 0, Random.Range(-180, 180)),
-                duration, RotateMode.FastBeyond360));
-            seq.OnComplete(() =>
-            {
-                capturedDummy.gameObject.SetActive(false);
-                capturedDummy.transform.rotation = Quaternion.identity;
-            });
-            
+            m_isUsingPowerup = false;
+            return;
         }
 
-        DOVirtual.DelayedCall(duration, () =>
+        List<Image> foods = items.Take(3).ToList();
+
+        m_plateAnimation.PlayPlateAnimation(foods, () =>
         {
+            // Logic xử lý sau khi animation xong
             foreach (var img in foods)
             {
-                // Ưu tiên xử lý FoodSlot trước
+
                 FoodSlot slot = img.GetComponentInParent<FoodSlot>();
                 if (slot != null)
                 {
-                    // ✅ Xóa food nhưng KHÔNG kéo tray lên ngay
                     slot.OnHideFood();
                     slot.ImgFood.sprite = null;
-                    // Không gọi ClearByMagnet vì nó trigger OnCheckPrepareTray
-                    // gây ra food mới xuất hiện và bị mất đếm
                     continue;
                 }
 
-                // Nếu food nằm trong Tray
                 TrayItem tray = img.GetComponentInParent<TrayItem>();
                 if (tray != null)
                 {
@@ -209,9 +171,9 @@ public class Powerups : MonoBehaviour
                 }
             }
 
-            // ✅ Sau khi xóa hết 3 item mới check tray — tránh race condition
             foreach (var img in foods)
             {
+
                 FoodSlot slot = img.GetComponentInParent<FoodSlot>();
                 slot?.OnCheckPrepareTray();
             }
@@ -220,7 +182,6 @@ public class Powerups : MonoBehaviour
             m_isUsingPowerup = false;
         });
     }
-
 
     private List<(Image img, FoodSlot slot, TrayItem tray)> GetAllActiveFood()
     {
@@ -250,7 +211,23 @@ public class Powerups : MonoBehaviour
         return result;
     }
 
-   
+    //public void PlayMergeAnimation(List<Image> items, System.Action onComplete)
+    //{
+    //    if (items == null || items.Count < 3)
+    //    {
+    //        onComplete?.Invoke();
+    //        return;
+    //    }
+
+    //    m_isUsingPowerup = true;
+
+    //    m_plateAnimation.PlayPlateAnimation(items.Take(3).ToList(), () =>
+    //    {
+    //        m_isUsingPowerup = false;
+    //        onComplete?.Invoke();
+    //    });
+    //}
+
     private void OnShuffle()
     {
         AudioManager.Instance.PlaySFX(SFXType.Shuffle);
