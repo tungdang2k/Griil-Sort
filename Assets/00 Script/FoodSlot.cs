@@ -1,4 +1,5 @@
 ﻿using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -19,6 +20,8 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
     private GrillStation m_grillCtrl;
     public Image ImgFood => m_imgFood;
 
+    public bool IsLocked { get; private set; }
+
     private void Awake()
     {
        
@@ -30,7 +33,10 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
 
     }
 
+  
 
+    public void Lock() => IsLocked = true;
+    public void Unlock() => IsLocked = false;
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (!HasFood()) return;
@@ -89,6 +95,8 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
         ApplyLayout();
     }
 
+    
+
     public void OnFadeFood()
     {
         OnActiveFood(true);
@@ -109,6 +117,7 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
 
     public bool HasFood()
     {
+        if (IsLocked) return true;
         return m_imgFood.gameObject.activeSelf && m_imgFood.color == m_nomalColor;
     }
     public Sprite GetSpriteFood()

@@ -146,6 +146,8 @@ public class Powerups : MonoBehaviour
             return;
         }
 
+
+
         List<Image> foods = items.Take(3).ToList();
 
         m_plateAnimation.PlayPlateAnimation(foods, () =>
@@ -180,6 +182,7 @@ public class Powerups : MonoBehaviour
 
             GameManager.Instance.OnMinusFood();
             m_isUsingPowerup = false;
+
         });
     }
 
@@ -210,23 +213,6 @@ public class Powerups : MonoBehaviour
         }
         return result;
     }
-
-    //public void PlayMergeAnimation(List<Image> items, System.Action onComplete)
-    //{
-    //    if (items == null || items.Count < 3)
-    //    {
-    //        onComplete?.Invoke();
-    //        return;
-    //    }
-
-    //    m_isUsingPowerup = true;
-
-    //    m_plateAnimation.PlayPlateAnimation(items.Take(3).ToList(), () =>
-    //    {
-    //        m_isUsingPowerup = false;
-    //        onComplete?.Invoke();
-    //    });
-    //}
 
     private void OnShuffle()
     {

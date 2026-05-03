@@ -13,9 +13,10 @@ public class PlateAnimation : MonoBehaviour
     [SerializeField] private float m_plateEnterTime = 0.4f;
     [SerializeField] private float m_plateExitTime = 0.4f;
     [SerializeField] private float m_itemFlyTime = 0.3f;
-
+    private GameObject m_inputBlocker;
     public void PlayPlateAnimation(List<Image> foods, System.Action onComplete)
     {
+       
         RectTransform canvasRect = m_plateRoot.GetComponentInParent<Canvas>()
                                               .GetComponent<RectTransform>();
         float canvasW = canvasRect.rect.width;
@@ -45,6 +46,16 @@ public class PlateAnimation : MonoBehaviour
         };
 
         List<RectTransform> activeDummies = new List<RectTransform>();
+        List<FoodSlot> lockedSlots = new List<FoodSlot>();
+        foreach (var food in foods)
+        {
+            FoodSlot slot = food.GetComponentInParent<FoodSlot>();
+            if (slot != null)
+            {
+                slot.Lock();
+                lockedSlots.Add(slot);
+            }
+        }
 
         for (int i = 0; i < foods.Count; i++)
         {
@@ -57,6 +68,8 @@ public class PlateAnimation : MonoBehaviour
 
             dummy.gameObject.SetActive(true);
             imgFood.gameObject.SetActive(false);
+
+
 
             RectTransform foodRect = imgFood.rectTransform;
             RectTransform dummyRect = dummy.rectTransform;
@@ -114,6 +127,10 @@ public class PlateAnimation : MonoBehaviour
         // 6. Cleanup + callback
         seq.OnComplete(() =>
         {
+            foreach (var slot in lockedSlots)
+            {
+                slot.Unlock();
+            }
             foreach (var d in m_imgDummyList)
             {
                 d.gameObject.SetActive(false);
@@ -121,10 +138,14 @@ public class PlateAnimation : MonoBehaviour
                 d.transform.rotation = Quaternion.identity;
             }
 
+
             Destroy(plate.gameObject);
             onComplete?.Invoke();
         });
     }
+
+   
+
     private Image GetFreeDummy()
     {
         return m_imgDummyList.FirstOrDefault(x => !x.gameObject.activeSelf);

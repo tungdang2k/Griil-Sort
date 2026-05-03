@@ -3,20 +3,41 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/// <summary>
+/// Drag-drop system dùng State Machine + Dummy Image.
+/// States: Idle → Dragging → Animating → Idle
+/// </summary>
 public class DropDragCtrl : MonoBehaviour
 {
+    // ─────────────────────────────────────────
+    //  INSPECTOR
+    // ─────────────────────────────────────────
     [SerializeField] private Image m_imgFoodDrag;
-    [SerializeField] private float m_timeCheckSuggest;
     [SerializeField] private float m_dragSize = 160f;
+    [SerializeField] private float m_timeCheckSuggest = 3f;
 
-    private FoodSlot m_currentfoodSlot, m_cacheFood;
-    private bool m_hasDrag;
-    private Vector3 m_offset;
+    // ─────────────────────────────────────────
+    //  STATE
+    // ─────────────────────────────────────────
+    private enum DragState { Idle, Dragging, Animating }
+    private DragState m_state = DragState.Idle;
+
+    // ─────────────────────────────────────────
+    //  DRAG DATA  (hợp lệ khi state != Idle)
+    // ─────────────────────────────────────────
+    private FoodSlot m_sourceSlot;   // slot đang bị kéo
+    private FoodSlot m_previewSlot;  // slot đang hiện preview mờ
+    private int m_pointerID = -1;
+
+    // ─────────────────────────────────────────
+    //  TIMER
+    // ─────────────────────────────────────────
     private float m_countTime;
 
-    private float _timeAtClick;
-    private Sprite m_dragSprite;
-    void Start()
+    // ═════════════════════════════════════════
+    //  UNITY
+    // ═════════════════════════════════════════
+    private void Start()
     {
         m_imgFoodDrag.gameObject.SetActive(false);
         m_imgFoodDrag.raycastTarget = false;
@@ -24,217 +45,201 @@ public class DropDragCtrl : MonoBehaviour
 
     private void Update()
     {
+        if (m_state != DragState.Dragging) return;
 
         m_countTime += Time.deltaTime;
-
         if (m_countTime >= m_timeCheckSuggest)
         {
             m_countTime = 0f;
             GameManager.Instance?.OnCheckAndShake();
         }
-        
     }
 
-    public void OnBtnDown(PointerEventData eventData)
+    // ═════════════════════════════════════════
+    //  PUBLIC API — gọi từ FoodSlot
+    // ═════════════════════════════════════════
+
+    public void OnBtnDown(PointerEventData evt)
     {
-            GameObject obj = eventData.pointerCurrentRaycast.gameObject;
-            FoodSlot tapSlot = obj.GetComponent<FoodSlot>();// check o vi tri click chuot xem co Ui gan class FoodSlot
-            if (tapSlot != null)
-            {
-                if (tapSlot.HasFood())
-                {
-                    AudioManager.Instance.PlaySFX(SFXType.Click);
-                    m_hasDrag = true;
+        if (m_state != DragState.Idle) return;
 
-                    m_currentfoodSlot?.OnActiveFood(true);
-                    m_cacheFood = m_currentfoodSlot = tapSlot;
-                    // Gan sprite food cho dummy image
-                    m_imgFoodDrag.gameObject.SetActive(true);
+        FoodSlot slot = GetSlot(evt);
+        if (slot == null || !slot.HasFood()) return;
 
-                    m_imgFoodDrag.sprite = m_currentfoodSlot.GetSpriteFood();
-                    m_imgFoodDrag.transform.position = m_currentfoodSlot.transform.position; // gan vi tri               
+        // ── Lock drag ──
+        m_state = DragState.Dragging;
+        m_pointerID = evt.pointerId;
+        m_countTime = 0f;
+        m_sourceSlot = slot;
 
+        AudioManager.Instance?.PlaySFX(SFXType.Click);
 
-                    var rt = m_imgFoodDrag.rectTransform;
-
-                    rt.sizeDelta = new Vector2(m_dragSize, m_dragSize);
-
-                // reset transform
-                    rt.localScale = Vector3.one;
-                    rt.localRotation = Quaternion.identity;
-                    rt.anchoredPosition = Vector2.zero;
-
-                // giữ tỉ lệ ảnh
-                    m_imgFoodDrag.preserveAspect = true;
-
-
-                    m_imgFoodDrag.transform.position = eventData.position;
-                    m_offset = Vector2.zero;
-                    m_currentfoodSlot.OnActiveFood(false);
-                    m_imgFoodDrag.transform.DOScale(Vector3.one * 1.2f, 0.2f);
-                }
-                else
-                {
-                    if (m_currentfoodSlot != null) // di chuyen item vua slect toi vi tri nay
-                    {
-                        m_imgFoodDrag.transform.DOKill();
-                        m_imgFoodDrag.transform.DOMove(tapSlot.transform.position, 0.4f).OnComplete(() => {
-                            tapSlot.OnSetSlot(m_currentfoodSlot.GetSpriteFood());
-                            tapSlot.OnActiveFood(true);
-                            tapSlot.OnCheckMerge();
-                            m_currentfoodSlot?.OnCheckPrepareTray();
-                            m_currentfoodSlot = null;
-                            m_imgFoodDrag.gameObject.SetActive(false);
-                        });
-                        m_imgFoodDrag.transform.DOScale(Vector3.one, 0.4f);
-                    }
-                }
-            }
-            else
-            {
-                m_currentfoodSlot?.OnActiveFood(true);
-                m_currentfoodSlot = null;
-                m_imgFoodDrag.gameObject.SetActive(false);
-            }
-        
+        // Ẩn food gốc, bật dummy
+        m_sourceSlot.OnActiveFood(false);
+        DummyShow(m_sourceSlot.GetSpriteFood(), evt.position);
+        m_imgFoodDrag.transform.DOScale(Vector3.one * 1.1f, 0.15f);
     }
 
-    public void OnHasDrag(PointerEventData eventData)
+    public void OnHasDrag(PointerEventData evt)
     {
-        if (m_hasDrag)
-        {
-            if (m_currentfoodSlot == null)
-            {
-                m_hasDrag = false;
-                return;
-            }
+        if (m_state != DragState.Dragging) return;
+        if (evt.pointerId != m_pointerID) return;
 
-            if (!m_imgFoodDrag || !m_imgFoodDrag.canvas) return;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-             m_imgFoodDrag.canvas.transform as RectTransform,
-                eventData.position,
-                null,
-                out Vector2 localPos
-            );
-
-            m_imgFoodDrag.rectTransform.localPosition = localPos + (Vector2)m_offset;
-
-            m_countTime = 0f;
-
-            GameObject obj = eventData.pointerCurrentRaycast.gameObject;// check o vi tri click chuot xem co Ui gan class FoodSlot
-            if (obj == null)
-            {
-                OnClearCacheFood();
-                return;
-            }
-            FoodSlot slot = obj.GetComponent<FoodSlot>();
-            if (slot != null)
-            {
-                if (!slot.HasFood()) // vi tri item chua co food
-                {
-                    if (m_cacheFood == null || m_cacheFood.GetInstanceID() != slot.GetInstanceID())
-                    {
-                        m_cacheFood?.OnHideFood();
-                        m_cacheFood = slot;
-                        m_cacheFood.OnFadeFood();
-                        
-                        m_cacheFood.ShowPreview(m_currentfoodSlot.GetSpriteFood());
-                    }
-                }
-                else // vi tri tro chuot da co item
-                {
-                    FoodSlot slotAvalable = slot.GetSlotNull;
-                    if (slotAvalable != null)
-                    {
-                        m_cacheFood?.OnHideFood();
-                        m_cacheFood = slotAvalable;
-                        m_cacheFood.OnFadeFood();
-                        
-                        m_cacheFood.ShowPreview(m_currentfoodSlot.GetSpriteFood());
-                    }
-                    else
-                    {
-                        this.OnClearCacheFood();
-                    }
-                }
-            }
-            else
-            {
-                if (m_cacheFood != null)
-                {
-                    m_cacheFood.OnHideFood();
-                    m_cacheFood = null;
-                }
-            }
-        }
+        m_countTime = 0f;
+        DummyMoveTo(evt.position);
+        UpdatePreview(ResolveTarget(evt));
     }
 
-
-    public void OnBtnUp(PointerEventData eventData)
+    public void OnBtnUp(PointerEventData evt)
     {
-        if (!m_hasDrag) return;
+        if (m_state != DragState.Dragging) return;
+        if (evt.pointerId != m_pointerID) return;
 
-        AudioManager.Instance.PlaySFX(SFXType.Smoke);
-        m_hasDrag = false;
-        if (Time.time - _timeAtClick < 0.15f)
-        {
-            // xử lý click nếu cần
-        }
+        m_state = DragState.Animating;
+        AudioManager.Instance?.PlaySFX(SFXType.Smoke);
+
+      
+
+        if (m_previewSlot != null)
+            DropToSlot(m_previewSlot);
         else
-        {
-            if (m_cacheFood != null)
-            {
-                m_imgFoodDrag.transform.DOMove(m_cacheFood.transform.position, 0.2f)
-                .OnComplete(() =>
-                {
-                    m_imgFoodDrag.gameObject.SetActive(false);
-
-                    m_cacheFood.OnSetSlot(m_currentfoodSlot.GetSpriteFood());
-                    m_cacheFood.OnActiveFood(true);
-                    m_cacheFood.OnCheckMerge();
-
-                    m_currentfoodSlot?.OnCheckPrepareTray();
-
-                    m_cacheFood = null;
-                    m_currentfoodSlot = null;
-                });
-            }
-            else
-            {
-                CleanUpAllPreview();
-                m_imgFoodDrag.transform.DOMove(
-                    m_currentfoodSlot.transform.position, 0.3f)
-                .OnComplete(() =>
-                {
-                    m_imgFoodDrag.gameObject.SetActive(false);
-                    m_currentfoodSlot.OnActiveFood(true);
-                });
-            }
-        }
-
-        m_hasDrag = false;
+            ReturnToSource();
     }
-    private void OnClearCacheFood()
+
+    // ═════════════════════════════════════════
+    //  DROP LOGIC
+    // ═════════════════════════════════════════
+
+    private void DropToSlot(FoodSlot dest)
     {
-        if (m_currentfoodSlot == null)
-        {
-            CleanUpAllPreview();
-            return;
-        }
+        FoodSlot src = m_sourceSlot;   // capture local — tránh race condition
 
-        if (m_cacheFood != null && m_cacheFood.GetInstanceID() != m_currentfoodSlot.GetInstanceID())
-        {
-            m_cacheFood.OnHideFood();
-            m_cacheFood = null;
-        }
+        dest.OnHideFood();             // xóa preview trước khi animate
+
+        m_imgFoodDrag.transform.DOKill();
+        m_imgFoodDrag.transform.DOScale(Vector3.one, 0.2f);
+        m_imgFoodDrag.transform.DOMove(dest.transform.position, 0.2f)
+            .OnComplete(() =>
+            {
+                DummyHide();
+                dest.OnSetSlot(src.GetSpriteFood());
+                dest.OnActiveFood(true);
+                dest.OnCheckMerge();
+                src.OnCheckPrepareTray();
+                ResetState();
+            });
     }
-    private void CleanUpAllPreview()
+
+    private void ReturnToSource()
     {
-        if (m_cacheFood != null)
+        FoodSlot src = m_sourceSlot;   // capture local
+        ClearPreview();
+
+        m_imgFoodDrag.transform.DOKill();
+        m_imgFoodDrag.transform.DOScale(Vector3.one, 0.3f);
+        m_imgFoodDrag.transform.DOMove(src.transform.position, 0.3f)
+            .OnComplete(() =>
+            {
+                DummyHide();
+                src.OnActiveFood(true);
+                ResetState();
+            });
+    }
+
+    // ═════════════════════════════════════════
+    //  PREVIEW
+    // ═════════════════════════════════════════
+
+    private void UpdatePreview(FoodSlot target)
+    {
+        if (target == m_previewSlot) return;  // không đổi → skip
+
+        ClearPreview();
+
+        if (target != null)
         {
-            m_cacheFood.OnHideFood(); // ✅ Ẩn ô preview trắng
-            m_cacheFood = null;
+            m_previewSlot = target;
+            m_previewSlot.ShowPreview(m_sourceSlot.GetSpriteFood());
         }
     }
 
+    private void ClearPreview()
+    {
+        if (m_previewSlot == null) return;
+        m_previewSlot.OnHideFood();
+        m_previewSlot = null;
+    }
+
+    // ═════════════════════════════════════════
+    //  TARGET RESOLUTION
+    // ═════════════════════════════════════════
+
+    /// <summary>
+    /// Trả về slot hợp lệ để thả vào:
+    ///  - Slot trống   → dùng luôn
+    ///  - Slot có food → lấy slot null từ GrillStation (cho merge/move)
+    ///  - Slot gốc / null → return null (trả về source)
+    /// </summary>
+    private FoodSlot ResolveTarget(PointerEventData evt)
+    {
+        FoodSlot hover = GetSlot(evt);
+        if (hover == null || hover == m_sourceSlot) return null;
+
+        if (!hover.HasFood()) return hover;
+
+        return hover.GetSlotNull;  // null nếu GrillStation đầy
+    }
+
+    // ═════════════════════════════════════════
+    //  DUMMY IMAGE
+    // ═════════════════════════════════════════
+
+    private void DummyShow(Sprite sprite, Vector2 screenPos)
+    {
+        m_imgFoodDrag.sprite = sprite;
+        m_imgFoodDrag.preserveAspect = true;
+
+        var rt = m_imgFoodDrag.rectTransform;
+        rt.sizeDelta = new Vector2(m_dragSize, m_dragSize);
+        rt.localScale = Vector3.one;
+        rt.localRotation = Quaternion.identity;
+
+        m_imgFoodDrag.gameObject.SetActive(true);
+        DummyMoveTo(screenPos);
+    }
+
+    private void DummyMoveTo(Vector2 screenPos)
+    {
+        if (m_imgFoodDrag.canvas == null) return;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            m_imgFoodDrag.canvas.transform as RectTransform,
+            screenPos, null, out Vector2 local);
+
+        m_imgFoodDrag.rectTransform.localPosition = local;
+    }
+
+    private void DummyHide()
+    {
+        m_imgFoodDrag.transform.DOKill();
+        m_imgFoodDrag.gameObject.SetActive(false);
+    }
+
+    // ═════════════════════════════════════════
+    //  UTILITY
+    // ═════════════════════════════════════════
+
+    private void ResetState()
+    {
+        m_sourceSlot = null;
+        m_previewSlot = null;
+        m_pointerID = -1;
+        m_state = DragState.Idle;
+    }
+
+    private static FoodSlot GetSlot(PointerEventData evt)
+    {
+        var obj = evt.pointerCurrentRaycast.gameObject;
+        return obj != null ? obj.GetComponent<FoodSlot>() : null;
+    }
 }

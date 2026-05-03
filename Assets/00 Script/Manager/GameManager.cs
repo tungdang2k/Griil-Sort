@@ -8,15 +8,10 @@ using UIImage = UnityEngine.UI.Image;
 
 public class GameManager : Singleton<GameManager>
 {
-    public enum Difficultys
-    {
-        Easy = 0,
-        Medium = 1,
-        Hard = 2
-    }
 
+   
     public LevelData CurrentLevelData { get; private set; }
-    public Difficultys Difficulty { get; private set; }
+
     public int CurrentLevel => m_currentLevel;
     public int AllFood => m_allFood;
     public int ToltalFood => m_toltalFood;
@@ -41,7 +36,8 @@ public class GameManager : Singleton<GameManager>
     private List<Sprite> m_totalSpriteFood = new List<Sprite>();
     private bool m_isGameEnded = false;
     private int m_mergeCount = 0;
-   
+    private List<LayerData> m_layersData;
+
     protected override void Awake()
     {
         base.Awake();
@@ -61,7 +57,7 @@ public class GameManager : Singleton<GameManager>
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
-
+    
     private void Start()
     {
        
@@ -95,7 +91,7 @@ public class GameManager : Singleton<GameManager>
         m_levelSeconds = CurrentLevelData.levelSeconds;
         m_allFood = CurrentLevelData.spawnWareData.totalWare;
         m_toltalFood = CurrentLevelData.spawnWareData.totalWarePattern;
-        Difficulty = (Difficultys)CurrentLevelData.difficulty;
+        m_layersData = CurrentLevelData.spawnWareData.listLayerData;
         //Debug.Log($"[GameManager] Level {level} loaded. AllFood: {m_allFood} | TotalFood: {m_toltalFood}");
         //m_totalGrill = CurrentLevelData.boardData.listTrayData.Count;
 
@@ -149,7 +145,6 @@ public class GameManager : Singleton<GameManager>
 
         return count;
     }
-
 
 
     private void OnInitLevel()
@@ -369,6 +364,8 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+ 
+
     public void OnMinusFood()
     {
         
@@ -377,7 +374,7 @@ public class GameManager : Singleton<GameManager>
         OnAllFoodChanged?.Invoke();
         UpdateAllLockedGrillText();
         CheckUnlockGrills();
-        SilentMergeLeftovers();
+        //SilentMergeLeftovers();
         if (m_allFood <= 0)
         {
             this.CompleteLevel();
