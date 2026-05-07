@@ -14726,8 +14726,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_imgFoodDrag: {fileID: 160672345}
-  m_timeCheckSuggest: 3
   m_dragSize: 160
+  m_timeCheckSuggest: 3
 --- !u!224 &729810228
 RectTransform:
   m_ObjectHideFlags: 0
@@ -48615,7 +48615,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36.1
+  m_fontSize: 36.15
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -51315,8 +51315,8 @@ RectTransform:
   - {fileID: 5937396165212619069}
   - {fileID: 591530463}
   - {fileID: 1973152368}
-  - {fileID: 720638161}
   - {fileID: 657188517}
+  - {fileID: 720638161}
   - {fileID: 314902597}
   - {fileID: 2014274102}
   - {fileID: 337015585}

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
-using NUnit.Framework;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -115,6 +114,7 @@ public class GrillStation : MonoBehaviour
         m_normalVisual.SetActive(true);
 
         StartCoroutine(UnlockNextFrame());
+
     }
 
     private IEnumerator UnlockNextFrame()
@@ -124,146 +124,53 @@ public class GrillStation : MonoBehaviour
         OnPrepareTray();
     }
 
-    public void OnInitGrill(int totalTray, List<Sprite> listFood, bool isLocked)
+    public void OnInitGrill(
+    List<Sprite> slotItems,
+    List<List<Sprite>> trayData)
     {
-        if (totalTray <= 0 || listFood == null || listFood.Count == 0)
-            return;
-
         m_stackTray.Clear();
 
-        int maxSlot = m_totalSlot.Count;
+        // SLOT
 
-        // clone để xử lý
-        List<Sprite> pool = new List<Sprite>(listFood);
+        List<FoodSlot> shuffledSlots = new List<FoodSlot>(m_totalSlot);
 
-        // ===== SLOT =====
-        if (!isLocked)
+        for (int i = shuffledSlots.Count - 1; i > 0; i--)
         {
-            int emptySlot = m_totalSlot.Count(s => !s.HasFood());
-            int foodOnSlot = Random.Range(1, Mathf.Min(emptySlot + 1, pool.Count + 1));
-
-            List<Sprite> slotFood = Utils.TakeAndRemoveRandom(pool, foodOnSlot);
-            // tránh auto match 3
-            var nameGroups = slotFood.GroupBy(s => s.name).ToList();
-            foreach (var group in nameGroups)
-            {
-                if (group.Count() >= 3)
-                {
-                    Sprite toRemove = group.First();
-                    slotFood.Remove(toRemove);
-                    pool.Add(toRemove);
-                    break;
-                }
-            }
-
-            List<Sprite> notPlaced = new List<Sprite>();
-
-            foreach (var food in slotFood)
-            {
-                FoodSlot slot = RandomSlot();
-                if (slot == null)
-                {
-                    notPlaced.Add(food); // giữ lại nếu không đặt được
-                    continue;
-                }
-
-                slot.OnSetSlot(food);
-            }
-
-            // trả lại pool
-            pool.AddRange(notPlaced);
+            int rand = Random.Range(0, i + 1);
+            var temp = shuffledSlots[i];
+            shuffledSlots[i] = shuffledSlots[rand];
+            shuffledSlots[rand] = temp;
         }
 
-        List<List<Sprite>> traysFood = BuildBalancedTrays(pool, totalTray);
+        int index = 0;
 
+        for (int i = 0; i < shuffledSlots.Count; i++)
+        {
+            if (index < slotItems.Count)
+            {
+                shuffledSlots[i].OnSetSlot(slotItems[index]);
+                index++;
+            }
+            else
+            {
+                shuffledSlots[i].OnHideFood();
+            }
+        }
+
+        // TRAY
         for (int i = 0; i < m_totalTrays.Count; i++)
         {
-            bool active = i < traysFood.Count && traysFood[i].Count > 0;
+            bool active = i < trayData.Count;
+
             m_totalTrays[i].gameObject.SetActive(active);
 
             if (active)
-            {   
-                m_totalTrays[i].OnSetFood(traysFood[i]);
+            {
+                m_totalTrays[i].OnSetFood(trayData[i]);
                 m_stackTray.Push(m_totalTrays[i]);
             }
         }
     }
-
-    private List<List<Sprite>> BuildBalancedTrays(List<Sprite> pool, int totalTray)
-    {
-        List<List<Sprite>> result = new List<List<Sprite>>();
-
-        if (pool == null || pool.Count == 0 || totalTray <= 0)
-            return result;
-
-        // clone để không phá data gốc
-        List<Sprite> working = new List<Sprite>(pool);
-
-        // shuffle cho random
-        working = working.OrderBy(x => Random.value).ToList();
-
-        int remainingItems = working.Count;
-        int remainingTrays = totalTray;
-
-        int index = 0;
-
-        for (int i = 0; i < totalTray; i++)
-        {
-            if (remainingItems <= 0)
-                break;
-
-            List<Sprite> tray = new List<Sprite>();
-
-            // 🔥 logic chọn 2 hoặc 3 item
-            int take = 2;
-
-            // nếu đủ item thì có thể lấy 3
-            if (remainingItems >= 3 && remainingTrays > 1)
-            {
-                take = Random.Range(2, 4); // 2 hoặc 3
-            }
-            else
-            {
-                // nếu gần hết thì lấy hết luôn
-                take = Mathf.Min(remainingItems, 3);
-            }
-
-            // đảm bảo không vượt quá số item còn lại
-            take = Mathf.Min(take, remainingItems);
-
-            for (int j = 0; j < take; j++)
-            {
-                tray.Add(working[index]);
-                index++;
-            }
-
-            result.Add(tray);
-
-            remainingItems -= take;
-            remainingTrays--;
-        }
-
-        return result;
-    }
-    private FoodSlot RandomSlot()
-    {
-        if (m_totalSlot == null || m_totalSlot.Count == 0)
-        {
-            return null;
-        }
-
-        // lọc slot trống
-        List<FoodSlot> emptySlots = m_totalSlot.FindAll(s => !s.HasFood());
-
-        if (emptySlots.Count == 0)
-        {
-            return null;
-        }
-
-        int n = Random.Range(0, emptySlots.Count);
-        return emptySlots[n];
-    }
-
 
     public FoodSlot GetSlotNull()
     {
@@ -329,8 +236,8 @@ public class GrillStation : MonoBehaviour
 
             tray.gameObject.SetActive(false);
             CleanEmptyTraysInStack();
-           
             OnCheckMerge();
+           
         }
 
     }

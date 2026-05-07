@@ -16,7 +16,8 @@ public class SpawnWareData
 {
     public int totalWare;
     public int totalWarePattern;
-    public List<LayerData> listLayerData;
+    public List<string> listWareSet  = new List<string>();
+    public List<LayerData> listLayerData = new List<LayerData>();
 }
 [Serializable]
 public class BoardData

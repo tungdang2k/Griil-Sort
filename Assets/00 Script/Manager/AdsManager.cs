@@ -1,5 +1,4 @@
-﻿using DG.Tweening.Core.Easing;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Advertisements;
 public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
 {
