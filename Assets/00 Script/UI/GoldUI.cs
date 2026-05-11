@@ -8,13 +8,13 @@ public class GoldUI : MonoBehaviour
     private int m_sessionGold;
     private void OnEnable()
     {
-        if (GameManager.Instance == null) return;
+        if (!GameManager.HasInstance) return;
         GameManager.Instance.OnAllFoodChanged += AddGold;
     }
 
     private void OnDisable()
     {
-        if (GameManager.Instance == null) return;
+        if (!GameManager.HasInstance) return;
         GameManager.Instance.OnAllFoodChanged -= AddGold;
     }
 

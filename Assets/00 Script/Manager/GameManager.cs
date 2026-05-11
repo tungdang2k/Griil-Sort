@@ -29,7 +29,6 @@ public class GameManager : Singleton<GameManager>
     private int m_currentLevel;
     private List<GrillStation> m_listGrill = new List<GrillStation>();
     private List<GrillStation> m_bonusGrills = new List<GrillStation>();
-    private float m_avgTray; 
     private List<Sprite> m_totalSpriteFood = new List<Sprite>();
     private bool m_isGameEnded = false;
     private int m_mergeCount = 0;
@@ -92,7 +91,6 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log($"[GameManager] Level {level} loaded. AllFood: {m_allFood} | TotalFood: {m_toltalFood}");
         //m_totalGrill = CurrentLevelData.boardData.listTrayData.Count;
         
-
         var validTrays = CurrentLevelData.boardData.listTrayData
         .Where(t => t != null &&
                 t.id != "bonus_tray" &&
@@ -279,7 +277,19 @@ public class GameManager : Singleton<GameManager>
 
         while (index < pool.Count)
         {
-            int grill = UnityEngine.Random.Range(0, grillCount);
+            //int grill = UnityEngine.Random.Range(0, grillCount);
+
+            int grill = 0;
+            int minTray = result[0].Count;
+
+            for (int i = 1; i < result.Count; i++)
+            {
+                if (result[i].Count < minTray)
+                {
+                    minTray = result[i].Count;
+                    grill = i;
+                }
+            }
 
             int remain = pool.Count - index;
 
@@ -566,56 +576,5 @@ public class GameManager : Singleton<GameManager>
         LoadingSceneManager.Instance.SwichToScene(CONSTANTS.HOMESCENE);
     }
 
-    public void OnCheckAndShake()
-    {
-        if (m_listGrill == null || m_listGrill.Count == 0)
-            return;
-
-        Dictionary<string, List<FoodSlot>> group = new Dictionary<string, List<FoodSlot>>();
-        for (int i = 0; i < m_listGrill.Count; i++)
-        {
-            if (!m_listGrill[i])
-            {
-                m_listGrill.RemoveAt(i); 
-                continue;
-            }
-            if (m_listGrill[i].gameObject.activeInHierarchy)
-            {
-                for (int j = 0; j < m_listGrill[i].totalSlot.Count; j++) {
-
-                    FoodSlot slot = m_listGrill[i].totalSlot[j];
-                    if (slot.HasFood()) {
-                        string name = slot.GetSpriteFood().name;
-                        if (!group.ContainsKey(name))
-                        {
-                            group.Add(name, new List<FoodSlot>());
-                        }
-                        group[name].Add(slot);
-
-
-                    }
-                }
-
-            }
-        }
-            
-
-        foreach (var kvp in group)
-        {
-            if (kvp.Value.Count >= 3)
-            {
-                for (int i = 0; i < 3; i++)
-                {
-
-                    kvp.Value[i].DoShake();
-                }
-                return;
-            }
-        }
-    }
-
-   
-
-   
 
 }

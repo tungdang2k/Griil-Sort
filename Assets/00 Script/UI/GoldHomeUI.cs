@@ -12,11 +12,13 @@ public class GoldHomeUI : MonoBehaviour
 
     private void OnEnable()
     {
+        if (GoldManager.Instance == null) return;
         GoldManager.Instance.OnGoldChanged += UpdateGold;
     }
 
     private void OnDisable()
     {
+        if (GoldManager.Instance == null) return;
         GoldManager.Instance.OnGoldChanged -= UpdateGold;
     }
 

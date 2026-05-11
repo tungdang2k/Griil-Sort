@@ -13,28 +13,44 @@ public class AudioToggleBinder : MonoBehaviour
 
     private void OnEnable()
     {
-        if (m_type == AudioType.Sound)
+        if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.OnSoundChanged += UpdateUI;
-            m_switcher.isOn = AudioManager.Instance.SoundOn;
-        }
-        else
-        {
-            AudioManager.Instance.OnMusicChanged += UpdateUI;
-            m_switcher.isOn = AudioManager.Instance.MusicOn;
+            if (m_type == AudioType.Sound)
+            {
+                AudioManager.Instance.OnSoundChanged += UpdateUI;
+                m_switcher.isOn = AudioManager.Instance.SoundOn;
+            }
+            else
+            {
+                AudioManager.Instance.OnMusicChanged += UpdateUI;
+                m_switcher.isOn = AudioManager.Instance.MusicOn;
+            }
         }
 
-        m_switcher.OnValueChanged += OnSwitchChanged;
+        if (m_switcher != null)
+        {
+            m_switcher.OnValueChanged += OnSwitchChanged;
+        }
     }
 
     private void OnDisable()
     {
-        if (m_type == AudioType.Sound)
-            AudioManager.Instance.OnSoundChanged -= UpdateUI;
-        else
-            AudioManager.Instance.OnMusicChanged -= UpdateUI;
+        if (AudioManager.Instance != null)
+        {
+            if (m_type == AudioType.Sound)
+             {
+               AudioManager.Instance.OnSoundChanged -= UpdateUI;
+             }
+            else
+            {
+               AudioManager.Instance.OnMusicChanged -= UpdateUI;
+            }
+        }
 
-        m_switcher.OnValueChanged -= OnSwitchChanged;
+        if(m_switcher != null)
+        {
+            m_switcher.OnValueChanged -= OnSwitchChanged;
+        }
     }
 
     private void UpdateUI(bool value)

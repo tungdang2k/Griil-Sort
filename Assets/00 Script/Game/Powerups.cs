@@ -147,7 +147,6 @@ public class Powerups : MonoBehaviour
         }
 
 
-
         List<Image> foods = items.Take(3).ToList();
 
         m_plateAnimation.PlayPlateAnimation(foods, () =>

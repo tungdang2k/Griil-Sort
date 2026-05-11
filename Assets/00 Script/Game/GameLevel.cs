@@ -8,19 +8,18 @@ public class GameLevel : MonoBehaviour
     [SerializeField] private Slider m_levelPercent;
     [SerializeField] private TextMeshProUGUI m_percentText;
 
-
     private int m_totalItem;
     private int m_currentItem;
 
     private void OnEnable()
     {
-        if (GameManager.Instance == null) return;
+        if (!GameManager.HasInstance) return;
         GameManager.Instance.OnAllFoodChanged += OnEatItem;
     }
 
     private void OnDisable()
     {
-        if (GameManager.Instance == null) return;
+        if (!GameManager.HasInstance) return;
         GameManager.Instance.OnAllFoodChanged -= OnEatItem;
     }
 

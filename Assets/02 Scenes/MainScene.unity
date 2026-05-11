@@ -14706,6 +14706,7 @@ GameObject:
   - component: {fileID: 729810227}
   - component: {fileID: 729810229}
   - component: {fileID: 729810231}
+  - component: {fileID: 729810232}
   m_Layer: 0
   m_Name: InputController
   m_TagString: Untagged
@@ -14780,6 +14781,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 729810226}
   m_CullTransparentMesh: 1
+--- !u!114 &729810232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 729810226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd37c5d0c2546964eb716f3f350ab013, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_idleTime: 2
 --- !u!1 &729974274
 GameObject:
   m_ObjectHideFlags: 0

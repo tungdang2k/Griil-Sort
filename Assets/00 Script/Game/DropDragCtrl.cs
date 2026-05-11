@@ -3,56 +3,32 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-/// <summary>
-/// Drag-drop system dùng State Machine + Dummy Image.
-/// States: Idle → Dragging → Animating → Idle
-/// </summary>
 public class DropDragCtrl : MonoBehaviour
 {
-    // ─────────────────────────────────────────
-    //  INSPECTOR
-    // ─────────────────────────────────────────
+
     [SerializeField] private Image m_imgFoodDrag;
     [SerializeField] private float m_dragSize = 160f;
-    [SerializeField] private float m_timeCheckSuggest = 3f;
 
-    // ─────────────────────────────────────────
-    //  STATE
-    // ─────────────────────────────────────────
     private enum DragState { Idle, Dragging, Animating }
     private DragState m_state = DragState.Idle;
 
-    // ─────────────────────────────────────────
-    //  DRAG DATA  (hợp lệ khi state != Idle)
-    // ─────────────────────────────────────────
     private FoodSlot m_sourceSlot;   // slot đang bị kéo
     private FoodSlot m_previewSlot;  // slot đang hiện preview mờ
     private int m_pointerID = -1;
 
-    // ─────────────────────────────────────────
-    //  TIMER
-    // ─────────────────────────────────────────
-    private float m_countTime;
-
-    // ═════════════════════════════════════════
-    //  UNITY
-    // ═════════════════════════════════════════
     private void Start()
     {
+             
         m_imgFoodDrag.gameObject.SetActive(false);
         m_imgFoodDrag.raycastTarget = false;
+
     }
 
     private void Update()
     {
         if (m_state != DragState.Dragging) return;
 
-        m_countTime += Time.deltaTime;
-        if (m_countTime >= m_timeCheckSuggest)
-        {
-            m_countTime = 0f;
-            GameManager.Instance?.OnCheckAndShake();
-        }
+        
     }
 
     // ═════════════════════════════════════════
@@ -69,7 +45,7 @@ public class DropDragCtrl : MonoBehaviour
         // ── Lock drag ──
         m_state = DragState.Dragging;
         m_pointerID = evt.pointerId;
-        m_countTime = 0f;
+
         m_sourceSlot = slot;
 
         AudioManager.Instance?.PlaySFX(SFXType.Click);
@@ -85,7 +61,7 @@ public class DropDragCtrl : MonoBehaviour
         if (m_state != DragState.Dragging) return;
         if (evt.pointerId != m_pointerID) return;
 
-        m_countTime = 0f;
+
         DummyMoveTo(evt.position);
         UpdatePreview(ResolveTarget(evt));
     }

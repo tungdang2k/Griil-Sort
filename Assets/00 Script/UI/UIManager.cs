@@ -8,12 +8,14 @@ public class UIManager : MonoBehaviour
 
     private void OnEnable()
     {
+        if (!GameManager.HasInstance) return;
         GameManager.Instance.OnWin += ShowWin;
         GameManager.Instance.OnOutOfTime += ShowLose;
     }
 
     private void OnDisable()
     {
+        if (!GameManager.HasInstance) return;
         GameManager.Instance.OnWin -= ShowWin;
         GameManager.Instance.OnOutOfTime -= ShowLose;
     }
