@@ -10,12 +10,13 @@ public class ProductIAPManager : MonoBehaviour
     [SerializeField] private ShopPage m_shopPage;
     [SerializeField] private PopupNoAds m_popupNoAds;
     [SerializeField] private HomePlay m_homePlay;
-    public string coin1000 = "1000_coin";
+    public string coin1000 = "1000_coin"; 
     public string coin5000 = "5000_coin";
     public string coin10000 = "10000_coin";
     public string coin25000 = "25000_coin";
     public string coin50000 = "50000_coin";
     public string coin100000 = "100000_coin";
+
 
     public string legendarybundle = "legendary_bundle";
     public string bigbundle = "big_bundle";
@@ -30,9 +31,19 @@ public class ProductIAPManager : MonoBehaviour
     private static StoreController m_storeController;
      async void Awake()
     {
-        m_shopPage = FindFirstObjectByType<ShopPage>();
-        m_popupNoAds = FindFirstObjectByType<PopupNoAds>();
-        m_homePlay = FindFirstObjectByType<HomePlay>();
+        if(m_shopPage == null)
+        {
+            m_shopPage = FindFirstObjectByType<ShopPage>();
+        }
+        if(m_popupNoAds == null)
+        {
+            m_popupNoAds = FindFirstObjectByType<PopupNoAds>();
+        }
+        if(m_homePlay == null)
+        {
+            m_homePlay = FindFirstObjectByType<HomePlay>();
+        }
+        ApplyCachedPrices();
 
         if (IsInitialized && m_storeController != null)
         {
@@ -139,11 +150,21 @@ public class ProductIAPManager : MonoBehaviour
     {
         m_storeController.FetchPurchases();
 
-        foreach(var product in products)
+        foreach (var product in products)
         {
-            string price = product.metadata.localizedPriceString + " " + product.metadata.isoCurrencyCode;
-            // pass price to UI
-            m_cachedPrices[product.definition.id] = price;
+            string productId = product.definition.id;
+
+            string price = product.metadata.localizedPriceString;
+
+            // cache RAM
+            m_cachedPrices[productId] = price;
+
+            // save PlayerPrefs
+            PlayerPrefs.SetString(CONSTANTS.PRICE_KEY_PREFIX + productId, price);
+            //string price = product.metadata.localizedPriceString + " " + product.metadata.isoCurrencyCode;
+            //// pass price to UI
+
+            //m_cachedPrices[product.definition.id] = price;
             if (product.definition.id == removeAds)
             {
                 m_popupNoAds?.UpdateRemoveAdsPrice(price);
@@ -154,15 +175,43 @@ public class ProductIAPManager : MonoBehaviour
             }
             
         }
+        PlayerPrefs.Save();
+
     }
     private void ApplyCachedPrices()
     {
-        foreach (var kvp in m_cachedPrices)
+        List<string> productIds = new List<string>()
         {
-            if (kvp.Key == removeAds)
-                m_popupNoAds?.UpdateRemoveAdsPrice(kvp.Value);
+        coin1000,
+        coin5000,
+        coin10000,
+        coin25000,
+        coin50000,
+        coin100000,
+        removeAds,
+        startedbundle,
+        bigbundle,
+        legendarybundle,
+        smallbundle
+        };
+
+        foreach (var productId in productIds)
+        {
+            string savedPrice =
+                PlayerPrefs.GetString(CONSTANTS.PRICE_KEY_PREFIX + productId, "");
+
+            if (string.IsNullOrEmpty(savedPrice))
+                continue;
+
+            if (productId == removeAds)
+            {
+                m_popupNoAds?.UpdateRemoveAdsPrice(savedPrice);
+            }
             else
-                m_shopPage?.UpdateButtonPrice(kvp.Key, kvp.Value);
+            {
+                m_shopPage?.UpdateButtonPrice(productId, savedPrice);
+            }
+
         }
     }
 

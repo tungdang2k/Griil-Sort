@@ -67,13 +67,16 @@ public class ShopPage : MonoBehaviour
         };
     }
 
+
     public void UpdateButtonPrice(string productId, string price)
     {
-        if (PriceTextMap.TryGetValue(productId, out var text))
-            text.text = price;
-    }
 
-    
+        if (PriceTextMap.TryGetValue(productId, out var text))
+        {
+            text.text = price;
+        }
+        
+    }
     public void Coin1000() => m_productIAPManager.BuyProduct(IAPProductKey.Coin1000);
     public void Coin5000() => m_productIAPManager.BuyProduct(IAPProductKey.Coin5000);
     public void Coin10000() => m_productIAPManager.BuyProduct(IAPProductKey.Coin10000);

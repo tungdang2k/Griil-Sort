@@ -15,6 +15,7 @@ public static class CONSTANTS
     public const string ADDTIME = "POWERUP_ADDTIME";
     public const string ADD_GRILL = "add_grill";
     public const string ADS_REMOVED_KEY = "ads_removed";
+    public const string PRICE_KEY_PREFIX = "IAP_PRICE_";
 
 
 }
