@@ -90,7 +90,7 @@ public class Powerups : MonoBehaviour
         }
         if (id == CONSTANTS.MAGNET && !CanUseMagnet())
         {
-            // TODO: hiện thông báo "Không có nhóm nào đủ 3 để hút"
+
             return;
         }
         m_isUsingPowerup = true;
@@ -98,6 +98,7 @@ public class Powerups : MonoBehaviour
         UpdatePowerUpUI();
         action?.Invoke();
     }
+
     private bool CanUseMagnet()
     {
         var allFood = GetAllActiveFood();
@@ -146,12 +147,11 @@ public class Powerups : MonoBehaviour
             return;
         }
 
-
         List<Image> foods = items.Take(3).ToList();
 
         m_plateAnimation.PlayPlateAnimation(foods, () =>
         {
-            // Logic xử lý sau khi animation xong
+
             foreach (var img in foods)
             {
 
@@ -199,8 +199,8 @@ public class Powerups : MonoBehaviour
                     result.Add((slot.ImgFood, slot, null));
             }
 
-            // ✅ m_stackTray thay vì m_totalTrays
-            foreach (var tray in grill.totalTrays) // totalTrays là Stack
+
+            foreach (var tray in grill.totalTrays) 
             {
                 if (!tray.gameObject.activeInHierarchy) continue;
                 foreach (var img in tray.FoodList)
@@ -239,7 +239,7 @@ public class Powerups : MonoBehaviour
         foreach (var img in result)
             img.transform.DOKill();
 
-        // 1️⃣ Jump lên đồng loạt (giữ nguyên)
+
         foreach (var img in result)
         {
             img.transform
@@ -249,13 +249,13 @@ public class Powerups : MonoBehaviour
 
         yield return new WaitForSeconds(jumpTime * 0.6f);
 
-        // 2️⃣ Smart Shuffle sprite
-        SmartShuffle(result);
+
+        Shuffle(result);
 
         foreach (var img in result)
             img.transform.DOKill();
 
-        // 3️⃣ Rơi xuống đồng loạt (giữ nguyên)
+
         foreach (var img in result)
         {
             img.transform
@@ -268,51 +268,25 @@ public class Powerups : MonoBehaviour
         m_isUsingPowerup = false;
     }
 
-    private void SmartShuffle(List<Image> result)
+
+    private void Shuffle(List<Image> result)
     {
-        // B1: Lấy danh sách sprite hiện tại
-        List<Sprite> sprites = result.Select(img => img.sprite).ToList();
 
-        // B2: Đếm số lượng từng loại
-        Dictionary<string, List<Sprite>> groups = new Dictionary<string, List<Sprite>>();
-        foreach (var sp in sprites)
+        List<Sprite> sprites = result
+            .Select(img => img.sprite)
+            .ToList();
+
+        for (int i = 0; i < sprites.Count; i++)
         {
-            if (!groups.ContainsKey(sp.name))
-                groups[sp.name] = new List<Sprite>();
-            groups[sp.name].Add(sp);
+            int randomIndex = Random.Range(i, sprites.Count);
+
+            (sprites[i], sprites[randomIndex]) =
+                (sprites[randomIndex], sprites[i]);
         }
 
-        // B3: Tách group có thể merge (>= 3) và group lẻ
-        List<Sprite> mergeableSprites = new List<Sprite>();
-        List<Sprite> remainingSprites = new List<Sprite>();
-
-        foreach (var kvp in groups)
-        {
-            int fullGroups = kvp.Value.Count / 3;
-            int leftover = kvp.Value.Count % 3;
-
-            for (int i = 0; i < fullGroups * 3; i++)
-                mergeableSprites.Add(kvp.Value[i]);
-
-            for (int i = fullGroups * 3; i < kvp.Value.Count; i++)
-                remainingSprites.Add(kvp.Value[i]);
-        }
-
-        // B4: Shuffle nội bộ từng nhóm
-        mergeableSprites = mergeableSprites.OrderBy(_ => Random.value).ToList();
-        remainingSprites = remainingSprites.OrderBy(_ => Random.value).ToList();
-
-        // B5: Ghép lại — mergeableSprites đứng đầu, lẻ đứng sau
-        // → đảm bảo các slot đầu tiên (visible) chứa food có thể merge
-        List<Sprite> finalOrder = new List<Sprite>();
-        finalOrder.AddRange(mergeableSprites);
-        finalOrder.AddRange(remainingSprites);
-
-        // B6: Gán lại sprite
         for (int i = 0; i < result.Count; i++)
         {
-            result[i].sprite = finalOrder[i];
-            //result[i].SetNativeSize();
+            result[i].sprite = sprites[i];
         }
     }
 

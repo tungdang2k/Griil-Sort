@@ -12,8 +12,8 @@ public class DropDragCtrl : MonoBehaviour
     private enum DragState { Idle, Dragging, Animating }
     private DragState m_state = DragState.Idle;
 
-    private FoodSlot m_sourceSlot;   // slot đang bị kéo
-    private FoodSlot m_previewSlot;  // slot đang hiện preview mờ
+    private FoodSlot m_sourceSlot;   
+    private FoodSlot m_previewSlot; 
     private int m_pointerID = -1;
 
     private void Start()
@@ -31,9 +31,6 @@ public class DropDragCtrl : MonoBehaviour
         
     }
 
-    // ═════════════════════════════════════════
-    //  PUBLIC API — gọi từ FoodSlot
-    // ═════════════════════════════════════════
 
     public void OnBtnDown(PointerEventData evt)
     {
@@ -50,7 +47,7 @@ public class DropDragCtrl : MonoBehaviour
 
         AudioManager.Instance?.PlaySFX(SFXType.Click);
 
-        // Ẩn food gốc, bật dummy
+        // show dummy
         m_sourceSlot.OnActiveFood(false);
         DummyShow(m_sourceSlot.GetSpriteFood(), evt.position);
         m_imgFoodDrag.transform.DOScale(Vector3.one * 1.1f, 0.15f);
@@ -82,15 +79,12 @@ public class DropDragCtrl : MonoBehaviour
             ReturnToSource();
     }
 
-    // ═════════════════════════════════════════
-    //  DROP LOGIC
-    // ═════════════════════════════════════════
 
     private void DropToSlot(FoodSlot dest)
     {
-        FoodSlot src = m_sourceSlot;   // capture local — tránh race condition
+        FoodSlot src = m_sourceSlot;  
 
-        dest.OnHideFood();             // xóa preview trước khi animate
+        dest.OnHideFood();             // hide preview 
 
         m_imgFoodDrag.transform.DOKill();
         m_imgFoodDrag.transform.DOScale(Vector3.one, 0.2f);
@@ -108,7 +102,7 @@ public class DropDragCtrl : MonoBehaviour
 
     private void ReturnToSource()
     {
-        FoodSlot src = m_sourceSlot;   // capture local
+        FoodSlot src = m_sourceSlot; 
         ClearPreview();
 
         m_imgFoodDrag.transform.DOKill();
@@ -122,13 +116,10 @@ public class DropDragCtrl : MonoBehaviour
             });
     }
 
-    // ═════════════════════════════════════════
-    //  PREVIEW
-    // ═════════════════════════════════════════
 
     private void UpdatePreview(FoodSlot target)
     {
-        if (target == m_previewSlot) return;  // không đổi → skip
+        if (target == m_previewSlot) return;  
 
         ClearPreview();
 
@@ -146,16 +137,6 @@ public class DropDragCtrl : MonoBehaviour
         m_previewSlot = null;
     }
 
-    // ═════════════════════════════════════════
-    //  TARGET RESOLUTION
-    // ═════════════════════════════════════════
-
-    /// <summary>
-    /// Trả về slot hợp lệ để thả vào:
-    ///  - Slot trống   → dùng luôn
-    ///  - Slot có food → lấy slot null từ GrillStation (cho merge/move)
-    ///  - Slot gốc / null → return null (trả về source)
-    /// </summary>
     private FoodSlot ResolveTarget(PointerEventData evt)
     {
         FoodSlot hover = GetSlot(evt);
@@ -163,12 +144,8 @@ public class DropDragCtrl : MonoBehaviour
 
         if (!hover.HasFood()) return hover;
 
-        return hover.GetSlotNull;  // null nếu GrillStation đầy
+        return hover.GetSlotNull;  
     }
-
-    // ═════════════════════════════════════════
-    //  DUMMY IMAGE
-    // ═════════════════════════════════════════
 
     private void DummyShow(Sprite sprite, Vector2 screenPos)
     {
@@ -201,10 +178,7 @@ public class DropDragCtrl : MonoBehaviour
         m_imgFoodDrag.gameObject.SetActive(false);
     }
 
-    // ═════════════════════════════════════════
-    //  UTILITY
-    // ═════════════════════════════════════════
-
+ 
     private void ResetState()
     {
         m_sourceSlot = null;

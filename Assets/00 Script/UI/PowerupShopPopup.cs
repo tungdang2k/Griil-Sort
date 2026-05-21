@@ -16,7 +16,7 @@ public class PowerupShopPopup : MonoBehaviour
     private string currentPowerUpId;
     private System.Action onSuccess;
 
-    // 👉 Mở popup
+    // show popup
     public void Show(string id, System.Action onSuccessCallback = null)
     {
         if(m_panel.activeSelf) return; 
@@ -28,23 +28,20 @@ public class PowerupShopPopup : MonoBehaviour
 
         m_panel.SetActive(true);
 
-        // reset
         content.localScale = Vector3.zero;
         canvasGroup.alpha = 0;
 
-        // kill animation cũ
+
         content.DOKill();
         canvasGroup.DOKill();
 
-        // fade nền
         canvasGroup.DOFade(1, 0.2f);
 
-        // scale popup
         content.DOScale(1f, 0.35f)
             .SetEase(Ease.OutBack);
     }
 
-    // 👉 Đóng popup
+    // hide popup
     public void Hide()
     {
         content.DOKill();
@@ -67,19 +64,19 @@ public class PowerupShopPopup : MonoBehaviour
 
     }
    
-    // 👉 Nút mua bằng vàng
+
     public void OnClickBuy()
     {
         if (GoldManager.Instance.SpendGold(goldCost))
         {
             PowerUpUsesManager.AddUses(currentPowerUpId, 1);
 
-            onSuccess?.Invoke(); // callback về Powerups
+            onSuccess?.Invoke(); 
             Hide();
         }
     }
 
-    // 👉 Nút xem ads
+
     public void OnClickWatchAd()
     {
         ShowRewardAd(() =>
@@ -91,7 +88,7 @@ public class PowerupShopPopup : MonoBehaviour
         });
     }
 
-    // 👉 mock (bạn thay bằng ads thật)
+
     void ShowRewardAd(System.Action onDone)
     {
         AdsManager.Instance.ShowRewarded(() =>

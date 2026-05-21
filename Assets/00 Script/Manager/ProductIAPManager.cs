@@ -63,6 +63,8 @@ public class ProductIAPManager : MonoBehaviour
 
     private void SubscribeEvents()
     {
+        if (m_storeController == null) return;
+
         m_storeController.OnStoreConnected += OnStoreConnected;
         m_storeController.OnStoreDisconnected += OnStoreDisconnected;
         m_storeController.OnProductsFetched += OnProductsFetched;
@@ -289,6 +291,7 @@ public class ProductIAPManager : MonoBehaviour
 
     private void OnPurchasePending(PendingOrder order)
     {
+
         m_storeController.ConfirmPurchase(order);
 
     }

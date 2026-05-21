@@ -34,7 +34,7 @@ public class InterstitialAds : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSh
             lastShowTime = Time.time;
             isReady = false;
             Load();
-            onCompleteCallback?.Invoke();  // ← gọi callback SAU khi ads xong
+            onCompleteCallback?.Invoke();  
             onCompleteCallback = null;
         }
     }
@@ -45,7 +45,7 @@ public class InterstitialAds : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSh
     }
     public void OnUnityAdsShowFailure(string id, UnityAdsShowError error, string msg)
     {
-        onCompleteCallback?.Invoke();  // ← ads lỗi vẫn cho chơi
+        onCompleteCallback?.Invoke();  
         onCompleteCallback = null;
     }
     public void OnUnityAdsShowStart(string id) { }
