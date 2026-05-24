@@ -69,8 +69,6 @@ public class AdsManager : Singleton<AdsManager>, IUnityAdsInitializationListener
         Debug.LogError($"Ads Init Failed: {error} - {message}");
     }
 
-    // ===== API dùng trong game =====
-
     public void ShowBanner() {
         if (IsAdsRemoved) return;
         bannerAds.Show();

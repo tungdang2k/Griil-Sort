@@ -44,7 +44,6 @@ public class GameLevel : MonoBehaviour
 
         m_percentText.text = Mathf.RoundToInt(value * 100) + "%";
 
-
     }
 
     private void OnEatItem()

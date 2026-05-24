@@ -20,13 +20,13 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnOutOfTime -= ShowLose;
     }
 
-    void ShowWin()
+    private void ShowWin()
     {
         if(m_winPanel == null) return;
         m_winPanel.SetActive(true);
     }
 
-    void ShowLose()
+    private void ShowLose()
     {
         if (m_losePanel == null) return;
         m_losePanel.SetActive(true);

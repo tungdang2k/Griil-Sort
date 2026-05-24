@@ -140,23 +140,22 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
 
         var rt = m_imgFood.rectTransform;
 
-        // 1. set sprite
         m_imgFood.sprite = img.sprite;
         m_imgFood.color = m_nomalColor;
         m_imgFood.gameObject.SetActive(true);
 
-        // 2. set về chuẩn slot
+
         rt.localScale = Vector3.one;
         rt.localRotation = Quaternion.identity;
         rt.anchoredPosition = Vector2.zero;
 
-        // 3. giữ aspect
+
         m_imgFood.preserveAspect = true;
 
-        // 4. set vị trí bắt đầu (world)
+
         rt.position = img.transform.position;
 
-        // 5. animate về slot
+
         rt.DOKill();
         rt.DOMove(transform.position, 0.3f).SetEase(Ease.OutBack);
         m_imgFood.transform.DOScale(1, 0.3f);

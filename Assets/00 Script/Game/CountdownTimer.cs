@@ -9,10 +9,6 @@ public class CountDowntimer : MonoBehaviour
     private float m_currentTime;
     private bool m_isRunning;
 
-    //private void Start()
-    //{
-    //    Debug.Log(GameManager.Instance.LevelSeconds);
-    //}
     private IEnumerator Start()
     {
         yield return new WaitUntil(() =>

@@ -23,12 +23,12 @@ public class LoadingSceneManager : Singleton<LoadingSceneManager>
     
     private IEnumerator SwichToSceneAsyc(string name)
     {
-        // Chờ 1 frame để UI kịp hiển thị loading screen
+
         yield return null;
 
         AsyncOperation operation = SceneManager.LoadSceneAsync(name);
 
-        // Giữ scene CHƯA chuyển để slider chạy đủ 100%
+
         operation.allowSceneActivation = false;
 
         float displayProgress = 0f;
@@ -42,13 +42,12 @@ public class LoadingSceneManager : Singleton<LoadingSceneManager>
             yield return null;
         }
 
-        // Kéo slider lên 100% trước khi chuyển
+
         m_progressBar.value = 1f;
-        yield return new WaitForSeconds(0.5f); // Cho user thấy 100%
+        yield return new WaitForSeconds(0.5f); 
 
-        operation.allowSceneActivation = true; // Bây giờ mới chuyển scene
+        operation.allowSceneActivation = true; // chuyển scene
 
-        // Chờ scene load xong hoàn toàn rồi mới ẩn
         while (!operation.isDone)
             yield return null;
 

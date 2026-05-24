@@ -55,15 +55,6 @@ public class UIPanel : MonoBehaviour
     }
 
 
-   public void OnNextLevelClicked()
-    {
-        //AdsManager.Instance.ShowRewarded(() =>
-        //{
-        //    // Code chạy sau khi xem xong quảng cáo
-        //    Debug.Log("Nhận thưởng!");
-        //});
-    }
-
 }
 
 

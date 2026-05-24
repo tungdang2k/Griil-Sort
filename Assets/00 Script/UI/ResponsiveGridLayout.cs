@@ -32,13 +32,10 @@ public class ResponsiveGridLayout : MonoBehaviour
         float spacingX = grid.spacing.x;
         float spacingY = grid.spacing.y;
 
-        // 🔥 tính theo chiều ngang
         float cellWidth = (width - (column - 1) * spacingX) / column;
 
-        // 🔥 tính theo chiều dọc (đã bị giới hạn bởi Main)
         float cellHeight = (height - (row - 1) * spacingY) / row;
 
-        // 👉 lấy nhỏ hơn để không tràn xuống dưới
         float size = Mathf.Min(cellWidth, cellHeight);
 
         grid.cellSize = new Vector2(size, size);
