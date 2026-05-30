@@ -3441,9 +3441,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_levelLoader: {fileID: 124136667}
-  m_totalGrill: 9
   m_allFood: 51
+  m_totalGrill: 9
   m_toltalFood: 10
+  cursorTexture: {fileID: 2800000, guid: 60eeb1ed5828394479d49e150a46f558, type: 3}
 --- !u!4 &226952028
 Transform:
   m_ObjectHideFlags: 0

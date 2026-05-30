@@ -1,11 +1,12 @@
-﻿using DG.Tweening;
+﻿using System;
+using DG.Tweening;
 using UnityEngine;
 
 public class UIPanel : MonoBehaviour
 {
     [SerializeField] private GameObject m_panelToActivate;
     [SerializeField] private CanvasGroup m_canvasGroup;
-
+    public Action OnPanelClosed;
     private void Start()
     {
         if(m_canvasGroup == null)
@@ -40,6 +41,7 @@ public class UIPanel : MonoBehaviour
             m_canvasGroup.DOFade(0f, 0.2f).SetUpdate(true).OnComplete(() =>
             {
                 m_panelToActivate.SetActive(false);
+                OnPanelClosed?.Invoke();
             });
             if (affectTimeScale)
                 Time.timeScale = 1f;

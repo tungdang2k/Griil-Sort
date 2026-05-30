@@ -30,7 +30,14 @@ public class TrayItem : MonoBehaviour
             m_FoodList[i].gameObject.SetActive(false);
     }
 
- 
+
+    private void Start()
+    {
+        if (IsEmpty())
+        {
+            gameObject.SetActive(false);
+        }
+    }
 
     public  void OnSetFood(List<Sprite> items)
     {

@@ -13,7 +13,7 @@ public class PlateAnimation : MonoBehaviour
     [SerializeField] private float m_plateEnterTime = 0.4f;
     [SerializeField] private float m_plateExitTime = 0.4f;
     [SerializeField] private float m_itemFlyTime = 0.3f;
-    private GameObject m_inputBlocker;
+
     public void PlayPlateAnimation(List<Image> foods, System.Action onComplete)
     {
        

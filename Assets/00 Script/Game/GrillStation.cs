@@ -105,7 +105,7 @@ public class GrillStation : MonoBehaviour
         if (m_lockCountText != null)
             m_lockCountText.text = value.ToString();
     }
-    // Mở khóa bếp, init food như bình thường
+
     public void Unlock()
     {
         IsLocked = false;
@@ -119,7 +119,7 @@ public class GrillStation : MonoBehaviour
 
     private IEnumerator UnlockNextFrame()
     {
-        // Chờ UI rebuild layout xong
+
         yield return null;
         OnPrepareTray();
     }
@@ -129,17 +129,19 @@ public class GrillStation : MonoBehaviour
     List<List<Sprite>> trayData)
     {
         m_stackTray.Clear();
-
         // SLOT
 
         List<FoodSlot> shuffledSlots = new List<FoodSlot>(m_totalSlot);
 
-        for (int i = shuffledSlots.Count - 1; i > 0; i--)
+        if (GameManager.Instance.CurrentLevel != 1)
         {
-            int rand = Random.Range(0, i + 1);
-            var temp = shuffledSlots[i];
-            shuffledSlots[i] = shuffledSlots[rand];
-            shuffledSlots[rand] = temp;
+            for (int i = shuffledSlots.Count - 1; i > 0; i--)
+            {
+                int rand = Random.Range(0, i + 1);
+                var temp = shuffledSlots[i];
+                shuffledSlots[i] = shuffledSlots[rand];
+                shuffledSlots[rand] = temp;
+            }
         }
 
         int index = 0;
@@ -221,11 +223,11 @@ public class GrillStation : MonoBehaviour
             {
                 if (!img.gameObject.activeSelf) continue;
 
-                FoodSlot slot = GetSlotNull(); // 🔥 lấy slot trống
+                FoodSlot slot = GetSlotNull(); 
 
                 if (slot == null)
                 {
-                    Debug.LogError("[BUG] Không đủ slot chứa tray!");
+
                     continue;
                 }
 
@@ -265,7 +267,7 @@ public class GrillStation : MonoBehaviour
             }
             else
             {
-                break; // tray này còn food → dừng
+                break; 
             }
         }
     }
@@ -307,7 +309,7 @@ public class GrillStation : MonoBehaviour
 
     private bool CanMerge()
     {
-        // kiểm tra các item có giống nhau không
+
         for (int i = 1; i < m_totalSlot.Count; i++)
         {
             string name = m_totalSlot[0].GetSpriteFood().name;

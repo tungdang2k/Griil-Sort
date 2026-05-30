@@ -31,7 +31,6 @@ public class DropDragCtrl : MonoBehaviour
         
     }
 
-
     public void OnBtnDown(PointerEventData evt)
     {
         if (m_state != DragState.Idle) return;

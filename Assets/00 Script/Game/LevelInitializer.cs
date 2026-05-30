@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class LevelInitializer 
@@ -14,13 +15,19 @@ public class LevelInitializer
         m_totalSpriteFood = loadedSprites.ToList();
     }
 
-
     public void Init(LevelData levelData,
     List<GrillStation> listGrills,
     List<GrillStation> bonusGrills)
-    { 
-        var allTrayData = levelData.boardData.listTrayData;
+    {
 
+
+        if (GameManager.Instance.CurrentLevel == 1)
+        {
+            InitTutorialLevel1(listGrills);
+            return;
+        }
+
+        var allTrayData = levelData.boardData.listTrayData;
         // filter grill
         List<GrillStation> activeGrills = new List<GrillStation>();
         List<GrillStation> lockedGrills = new List<GrillStation>();
@@ -31,7 +38,6 @@ public class LevelInitializer
             if (i >= allTrayData.Count) { listGrills[i].gameObject.SetActive(false); continue; }
             var t = allTrayData[i];
             var grill = listGrills[i];
-
 
             if (t.id == "bonus_tray")
             {
@@ -57,16 +63,15 @@ public class LevelInitializer
                 activeGrills.Add(grill);
             }
 
-
         }
 
         int totalSlot = activeGrills.Sum(g => g.totalSlot.Count);
 
-        // 1. global groups
+        //  global groups
         var groups = CreateGlobalGroups(levelData.spawnWareData.totalWare
             , levelData.spawnWareData.totalWarePattern);
 
-        // 2. layer1
+        //  layer1
         BuildLayer1Items(
             groups,
             levelData.spawnWareData.listLayerData[0],
@@ -74,16 +79,16 @@ public class LevelInitializer
             out var slotItems,
             out var remainPool);
 
-        // 3. distribute slot
+        //  distribute slot
         slotItems = slotItems.OrderBy(_ => UnityEngine.Random.value).ToList();
         var slotPerGrill = DistributeSlotToGrill(slotItems, activeGrills);
-
-        // 4. tray
+         
+        //  tray 
         var allGrills = activeGrills.Concat(lockedGrills).ToList();
         remainPool = remainPool.OrderBy(_ => UnityEngine.Random.value).ToList();
         var trayPerGrill = BuildTrayPerGrill(remainPool, allGrills.Count);
 
-        // 5. init grill
+        // init grill
         for (int i = 0; i < activeGrills.Count; i++)
         {
             var grill = activeGrills[i];
@@ -106,6 +111,83 @@ public class LevelInitializer
             );
         }
 
+    }
+     
+    private void InitTutorialLevel1(List<GrillStation> grills)
+    {
+        List<Sprite> randomFoods = m_totalSpriteFood
+    .OrderBy(_ => UnityEngine.Random.value)
+    .Take(5)
+    .ToList();
+
+        Sprite food1 = randomFoods[0];
+        Sprite food2 = randomFoods[1];
+        Sprite food3 = randomFoods[2];
+        Sprite food4 = randomFoods[3];
+        Sprite food5 = randomFoods[4];
+
+        // slot data
+        List<List<Sprite>> slotPerGrill = new()
+    {    
+        new() { food1,food1,null},
+        new() { food2,food2,food1},
+        new() { null,food2,food3},
+        new() { food4,food4,null}, 
+        new() { null,food3,null },    
+        new() { food5,null, food3 }
+    };
+
+        // tray data
+        List<List<List<Sprite>>> trayPerGrill = new()
+    {
+        new()
+        {
+            new() { food5, food5 }
+        },
+        new()
+        {
+            new() { food4, }
+        },
+
+        new()
+        {
+            new() {  }
+        },
+
+        new()
+        {
+            new() {  }
+        },
+
+        new()
+        {
+            new() {  }
+        },
+
+        new()
+        {
+            new() {  }
+        },
+
+    };
+        int count = Mathf.Min(
+            grills.Count,
+            slotPerGrill.Count
+        );
+
+        for (int i = 0; i < count; i++)
+        {
+            grills[i].gameObject.SetActive(true);
+
+            grills[i].OnInitGrill(
+                slotPerGrill[i],
+                trayPerGrill[i]
+            );
+        }
+        for (int i = count; i < grills.Count; i++)
+        {
+            grills[i].gameObject.SetActive(false);
+        }
     }
 
     private List<List<Sprite>> CreateGlobalGroups(int totalFood,
@@ -239,14 +321,13 @@ public class LevelInitializer
 
         while (index < pool.Count)
         {
-            //int grill = UnityEngine.Random.Range(0, grillCount);
 
             int grill = 0;
             int minTray = result[0].Count;
 
             for (int i = 1; i < result.Count; i++)
             {
-                if (result[i].Count < minTray)
+                if (result[i].Count < minTray) 
                 {
                     minTray = result[i].Count;
                     grill = i;

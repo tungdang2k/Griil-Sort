@@ -31,7 +31,7 @@ public class GameManager : Singleton<GameManager>
     private float m_levelSeconds;
     private int m_mergeCount = 0;
     private int m_currentLevel;
-
+    private bool m_hideTutorialDone = false;
     protected override void Awake()
     {
         base.Awake();
@@ -51,12 +51,13 @@ public class GameManager : Singleton<GameManager>
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
+ 
 
     void Update()
     {
 
         //Debug.Log($"[FRAME {Time.frameCount}] RealFoodInScene = {GetTotalRealFoodInScene()}");
-
+        
     }
 
     public void StartLevel()
@@ -69,6 +70,7 @@ public class GameManager : Singleton<GameManager>
 
         m_listGrill = Utils.GetListInChild<GrillStation>(m_gridGrill);
         m_isGameEnded = false;
+        m_hideTutorialDone = false;
         m_mergeCount = 0;        
         m_allFood = 0;
         LoadLevel(m_currentLevel);
@@ -78,6 +80,7 @@ public class GameManager : Singleton<GameManager>
          m_bonusGrills
         );
 
+        
     }
     private void LoadLevel(int level)
     {
@@ -119,6 +122,14 @@ public class GameManager : Singleton<GameManager>
         OnAllFoodChanged?.Invoke();
         UpdateAllLockedGrillText();
         CheckUnlockGrills();
+           
+        if (m_currentLevel == 1 && !m_hideTutorialDone)
+        {
+            m_hideTutorialDone = true; 
+            FindFirstObjectByType<HandTurorial>()?.HideHandeGuide();
+        }
+
+         
         if (m_allFood <= 0)
         {
             this.CompleteLevel();
@@ -147,7 +158,7 @@ public class GameManager : Singleton<GameManager>
                 grill.Unlock();
         }
     }
-
+     
     private void ShowWinPanel()
     { 
         if (m_isGameEnded) return;
@@ -169,6 +180,36 @@ public class GameManager : Singleton<GameManager>
     {
         Time.timeScale = 1f;
         LoadingSceneManager.Instance.SwichToScene(CONSTANTS.HOMESCENE);
+    }
+
+     int GetTotalRealFoodInScene()
+    {
+        int count = 0;
+
+        foreach (var grill in m_listGrill)
+        {
+            if (!grill.gameObject.activeInHierarchy)
+                continue;
+
+            //  Đếm food trong SLOT
+            foreach (var slot in grill.totalSlot)
+            {
+                if (slot.HasFood())
+                    count++;
+            }
+
+            // Đếm food trong TẤT CẢ TRAY
+            foreach (var tray in grill.totalTrays)
+            {
+                foreach (var img in tray.FoodList)
+                {
+                    if (img.gameObject.activeInHierarchy)
+                        count++;
+                }
+            }
+        }
+
+        return count;
     }
 
 }
