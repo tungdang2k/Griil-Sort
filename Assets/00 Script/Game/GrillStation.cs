@@ -124,41 +124,28 @@ public class GrillStation : MonoBehaviour
         OnPrepareTray();
     }
 
+
     public void OnInitGrill(
     List<Sprite> slotItems,
     List<List<Sprite>> trayData)
     {
         m_stackTray.Clear();
-        // SLOT
-
-        List<FoodSlot> shuffledSlots = new List<FoodSlot>(m_totalSlot);
-
-        if (GameManager.Instance.CurrentLevel != 1)
-        {
-            for (int i = shuffledSlots.Count - 1; i > 0; i--)
-            {
-                int rand = Random.Range(0, i + 1);
-                var temp = shuffledSlots[i];
-                shuffledSlots[i] = shuffledSlots[rand];
-                shuffledSlots[rand] = temp;
-            }
-        }
 
         int index = 0;
 
-        for (int i = 0; i < shuffledSlots.Count; i++)
+        for (int i = 0; i < m_totalSlot.Count; i++)
         {
             if (index < slotItems.Count)
             {
-                shuffledSlots[i].OnSetSlot(slotItems[index]);
+                m_totalSlot[i].OnSetSlot(slotItems[index]);
                 index++;
             }
             else
             {
-                shuffledSlots[i].OnHideFood();
+                m_totalSlot[i].OnHideFood();
             }
         }
-
+         
         // TRAY
         for (int i = 0; i < m_totalTrays.Count; i++)
         {
@@ -173,6 +160,7 @@ public class GrillStation : MonoBehaviour
             }
         }
     }
+
 
     public FoodSlot GetSlotNull()
     {

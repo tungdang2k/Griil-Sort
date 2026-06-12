@@ -170,7 +170,7 @@ public class FoodSlot : MonoBehaviour, IBeginDragHandler,
 
     public void DoShake()
     {
-        m_imgFood.transform.DOShakePosition(0.5f, 10f, 20, 180f);
+        m_imgFood.transform.DOShakePosition(0.5f, 10f, 20, 180f).SetLink(gameObject); 
     }
     public void ClearByMagnet()
     {

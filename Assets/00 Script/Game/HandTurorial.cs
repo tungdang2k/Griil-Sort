@@ -22,6 +22,7 @@ public class HandTurorial : MonoBehaviour
         m_seq?.Kill();
 
         m_seq = DOTween.Sequence()
+            .SetLink(gameObject)
             .SetLoops(-1, LoopType.Restart);
 
         m_seq.AppendCallback(() =>
